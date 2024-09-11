@@ -26,6 +26,6 @@ export interface Column<T> {
     Prioridade: string;
     Usuario: string;
     Obs: string;
-
+    actions?: () => void; // Ações como função opcional
   }
   

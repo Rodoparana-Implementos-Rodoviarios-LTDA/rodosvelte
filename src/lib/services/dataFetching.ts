@@ -2,6 +2,7 @@ import type { PreNota } from "$lib/types/tableTypes";
 
 // Função de fetch paginada
 export const dataFetching = async (
+  endpoint: string,             // Endpoint dinâmico para a API
   page: number = 1,             // Número da página atual
   pageSize: number = 10,        // Tamanho da página
   sortBy: string = '',          // Campo para ordenar
@@ -31,7 +32,8 @@ export const dataFetching = async (
       },
     };
 
-    const response = await fetch(`http://localhost:8080/api/prenotas?${params.toString()}`, config);
+    // Usa o endpoint passado por argumento
+    const response = await fetch(`http://rodoapp:8080/api/${endpoint}?${params.toString()}`, config);
 
     // Verifique se a resposta da API é válida
     if (!response.ok) {

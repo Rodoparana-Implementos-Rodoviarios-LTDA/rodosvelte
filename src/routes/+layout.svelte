@@ -1,10 +1,11 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
 	import Nav from '$lib/components/theme/nav.svelte';
-	import ChangeTheme from '$lib/components/theme/changeTheme.svelte';
+	import ThemeChanger from '$lib/components/theme/changeTheme.svelte';
 	import { page } from '$app/stores'; // Para acessar a URL atual
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import
 
 	onMount(() => {
 		const token = sessionStorage.getItem('token'); // Obtém o token do sessionStorage
@@ -22,6 +23,7 @@
 		<div class="">
 			{#if $page.url.pathname !== '/'}
 				<Nav />
+				<ThemeChanger />
 			{/if}
 
 		</div>

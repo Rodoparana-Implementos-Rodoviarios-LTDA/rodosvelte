@@ -32,7 +32,7 @@
 <HoverCard.Root>
   <HoverCard.Trigger asChild>
     <!-- Avatar com as iniciais -->
-    <div class="flex items-center justify-center">
+    <div class="flex items-center justify-start">
       <div class="flex items-center justify-center bg-base-300 rounded-full h-9 w-9 2xl:h-10 2xl:w-10 text-xs 2xl:text-base">
         {getInitials(username)}
       </div>

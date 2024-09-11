@@ -1,7 +1,5 @@
 <script lang="ts">
-	import DateRangePicker from '$lib/components/ui/DatePicker.svelte';
 	import { createEventDispatcher } from 'svelte';
-
 	// Estados para os filtros
 	export let selectedFilial = '';
 	export let selectedNF = '';
@@ -60,7 +58,7 @@
 	aria-labelledby="filters-heading"
 >
 	<div>
-		<h2 id="filters-heading" class="text-lg font-bold mb-4 ">Filtros</h2>
+		<h2 id="filters-heading" class="text-lg font-bold mb-4 "></h2>
 		<!-- Filtro de Filial -->
 		<div class="form-control mb-4">
 			<label class="label" for="filial-input"><span class="label-text">Filial</span></label>
@@ -75,7 +73,7 @@
 		</div>
 
 		<!-- Filtro de NF -->
-		<div class="form-control mb-4">
+		<div class="form-control  mb-4">
 			<label class="label" for="nf-input"><span class="label-text">NF</span></label>
 			<input
 				id="nf-input"
