@@ -2,7 +2,8 @@
   import { HoverCard } from 'radix-svelte';
   
   // Propriedades recebidas
-  export let username: string;
+  export let username: string | undefined;
+
 
   // Função para pegar as iniciais a partir do username
   const getInitials = (username?: string) => {

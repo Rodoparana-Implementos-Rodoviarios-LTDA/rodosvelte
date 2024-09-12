@@ -1,4 +1,4 @@
-import type { PreNota } from "$lib/types/tableTypes";
+import type { BorrachariaData } from "$lib/types/tableTypes";
 
 // Função de fetch paginada
 export const dataFetching = async (
@@ -8,7 +8,7 @@ export const dataFetching = async (
   sortBy: string = '',          // Campo para ordenar
   sortOrder: string = 'asc',    // Ordem de classificação
   filters: Record<string, string> = {}  // Filtros opcionais
-): Promise<{ data: PreNota[], hasMore: boolean }> => {
+): Promise<{ data: BorrachariaData[], hasMore: boolean }> => {
   try {
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -45,14 +45,23 @@ export const dataFetching = async (
     // Adicione um log para depurar a resposta da API
     console.log('Resposta da API:', result);
 
-    // Verifica se a resposta é um array
-    if (!Array.isArray(result)) {
-      throw new Error('Resposta inesperada: o resultado não é um array.');
-    }
+    // Mapear o resultado para BorrachariaData[]
+    const mappedData: BorrachariaData[] = result.map((item: any) => ({
+      Filial: item.Filial,
+      NF: item.NF,
+      Vendedor: item.Vendedor || '',
+      Cliente: item.Cliente || '',
+      Produto: item.Produto || '',
+      Saldo: item.Saldo || 0,
+      Emissao: item.Emissao || item.DataHora ||'', // assuming 'DataHora' is the emission date
+      Responsavel: item.Responsavel || '',
+      Placa: item.Placa || '',
+      Observacao: item.Observacao || ''
+    }));
 
-    // Retorna os dados da página atual e verifica se há mais páginas a carregar
+    // Retorna os dados mapeados e verifica se há mais páginas
     return {
-      data: result,         // Os registros são o próprio array retornado
+      data: mappedData,
       hasMore: result.length === pageSize  // Se há mais dados a serem carregados
     };
 

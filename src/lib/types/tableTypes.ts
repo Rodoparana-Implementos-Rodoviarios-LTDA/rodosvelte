@@ -9,7 +9,6 @@ export interface Column<T> {
   props?: (row: T) => Record<string, any>; // Propriedades opcionais passadas para o componente
 }
 
-
   export interface TableData {
     [key: string]: any; // Dados da tabela com chave genérica
   }
@@ -30,4 +29,31 @@ export interface Column<T> {
     Rec: string;
     actions?: () => void; // Ações como função opcional
   }
+
+}
+export interface borracharia {
+  Filial: string;
+  NF: string;
+  Cliente: string;
+  Vendedor: string;
+  Produto: string;
+  Saldo: string;
+  Emissao: string;
+}
+
+
+export interface BorrachariaData {
+  Filial: string;
+  NF: string;
+  Vendedor: string;
+  Cliente: string;
+  Produto: string;
+  Saldo: number;
+  Emissao: string;
+  Responsavel: string;
+  Placa: string;
+  Observacao: string;
+}
+
   
+
