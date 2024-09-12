@@ -130,18 +130,30 @@ func MapTipoMovimento(tipoMov string) string {
 // ===================
 
 // SortByColumn classifica uma lista de qualquer tipo com base em um campo específico.
-// O campo é passado como uma string representando o nome da coluna, e o sortOrder define se é ascendente ("asc") ou descendente ("desc").
 func SortByColumn[T any](data []T, column string, sortOrder string) []T {
 	sort.SliceStable(data, func(i, j int) bool {
 		vi := reflect.ValueOf(data[i]).FieldByName(column)
 		vj := reflect.ValueOf(data[j]).FieldByName(column)
 
-		// Se o campo não existir, não faz nada
-		if !vi.IsValid() || !vj.IsValid() {
-			return false
+		// Se o campo for uma data, converte para time.Time e compara
+		if column == "Inclusao" || column == "Emissao" || column == "Vencimento" {
+			timeFormat := "02/01/2006"
+			dateI, errI := time.Parse(timeFormat, vi.String())
+			dateJ, errJ := time.Parse(timeFormat, vj.String())
+
+			if errI != nil || errJ != nil {
+				log.Printf("Erro ao converter string para data: %v, %v", errI, errJ)
+				return false
+			}
+
+			// Compara as datas de acordo com o sortOrder
+			if sortOrder == "desc" {
+				return dateI.After(dateJ)
+			}
+			return dateI.Before(dateJ)
 		}
 
-		// Comparação genérica baseada no tipo do campo
+		// Comparação padrão para strings, inteiros e floats
 		switch vi.Kind() {
 		case reflect.String:
 			if sortOrder == "desc" {
@@ -164,4 +176,75 @@ func SortByColumn[T any](data []T, column string, sortOrder string) []T {
 	})
 	return data
 }
+// FilterData filtra uma lista de qualquer tipo com base nos headers enviados. 
+// Para cada coluna especificada, ele compara o valor no header com o valor no dado correspondente.
+func FilterData[T any](data []T, r *http.Request, filterableColumns []string) []T {
+	var filteredData []T
 
+	for _, item := range data {
+		matchesAll := true
+
+		for _, column := range filterableColumns {
+			// Pega o valor do header correspondente ao filtro da coluna
+			filterValue := r.Header.Get("X-Filter-" + column)
+
+			// Se o filtro não estiver presente ou estiver vazio, ignora essa coluna
+			if filterValue != "" {
+				// Busca o valor do campo correspondente no item
+				fieldValue := reflect.ValueOf(item).FieldByName(column)
+
+				// Verifica se o campo existe e é uma string
+				if fieldValue.IsValid() && fieldValue.Kind() == reflect.String {
+					// Comparação por substring (case-insensitive)
+					if !strings.Contains(strings.ToLower(fieldValue.String()), strings.ToLower(filterValue)) {
+						matchesAll = false
+						break
+					}
+				} else {
+					matchesAll = false
+					break
+				}
+			}
+		}
+
+		// Se o item combinar com todos os filtros, ele é adicionado ao resultado
+		if matchesAll {
+			filteredData = append(filteredData, item)
+		}
+	}
+
+	return filteredData
+}
+// Paginate aplica a paginação a uma lista de itens genéricos, retornando apenas os itens da página solicitada.
+func Paginate[T any](items []T, r *http.Request) []T {
+	// Define os valores padrão de paginação
+	page := 1      // Página padrão
+	pageSize := 10 // Número de itens por página padrão
+
+	// Pega os parâmetros de paginação do header
+	pageParam := r.Header.Get("X-Page")
+	pageSizeParam := r.Header.Get("X-Page-Size")
+
+	// Converte os parâmetros recebidos
+	if p, err := strconv.Atoi(pageParam); err == nil && p > 0 {
+		page = p
+	}
+	if ps, err := strconv.Atoi(pageSizeParam); err == nil && ps > 0 {
+		pageSize = ps
+	}
+
+	// Calcula os índices de início e fim da página
+	start := (page - 1) * pageSize
+	end := start + pageSize
+
+	// Verifica se os índices estão dentro do limite
+	if start >= len(items) {
+		return []T{} // Página vazia se o início estiver fora do limite
+	}
+	if end > len(items) {
+		end = len(items) // Ajusta o fim se ultrapassar o número de itens
+	}
+
+	// Retorna os itens da página correspondente
+	return items[start:end]
+}

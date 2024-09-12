@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetch para os dados
+	import Table from '$lib/components/ui/table/Table.svelte'; // Componente da Tabela
+	import { fetchDados } from '$lib/utils/fetchDados'; // Função de fetch para os dados
 	import { columns } from '$lib/components/prenota/tabela/columns'; // Importa as colunas
-	import Filters from '$lib/components/prenota/tabela/Filters.svelte'; // Componente de Filtros
+
 	import type { PreNota } from '$lib/types/tableTypes';
 	import {IconFilter} from "@tabler/icons-svelte"
 	let isLoading = true;
@@ -28,7 +28,7 @@
 	  isLoading = true;
 	  try {
 		// Passa o endpoint dinâmico para a função de fetch
-		const result = await dataFetching(endpoint, page, 15, sortBy, sortOrder, filters);
+		const result = await fetchDados(endpoint, page, 15, sortBy, sortOrder, filters);
 		preNotas = result.data;
 		hasMore = result.hasMore;
 	  } catch (error) {
@@ -107,14 +107,7 @@
 	  <!-- Drawer Lateral de Filtros -->
 	  <div class="drawer-side z-50">
 		<label for="filters-drawer" class="drawer-overlay"></label>
-		<Filters
-		  bind:selectedStatus
-		  bind:selectedFilial
-		  bind:selectedFornecedor
-		  bind:selectedTipo
-		  bind:selectedPrioridade
-		  on:applyFilters={handleFilters}
-		/>
+
 	  </div>
 	</div>
 </div>

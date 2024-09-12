@@ -1,10 +1,10 @@
 // src/lib/components/prenota/tabela/columns.ts
 import type { Column, PreNota } from '$lib/types/tableTypes';
-import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte';
-import StatusIcon from './StatusIcon.svelte';
+import UserAvatar from '$lib/components/ui/tabel/UserAvatar.svelte';
+import StatusIcon from './Badge.svelte';
 import DateCell from './DateCell.svelte'
 import ActionDropdown from './ActionDropdown.svelte';
-import HoverText from '$lib/components/ui/tabela/HoverText.svelte';
+import HoverText from '$lib/components/ui/tabel/HoverText.svelte';
 
 export const columns: Column<PreNota>[] = [
   {

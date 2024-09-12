@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { IconHistory } from '@tabler/icons-svelte';
 	import Timeline from './Timeline.svelte';
-	import revisaoFetch from '$lib/services/revisaoFetch'; // Função para buscar os eventos
+	import revisaoFetch from '$lib/utils/revisaoFetch'
 	import type { Revisao } from '$lib/types/revisao';
 
 	export let rec: string; // Recebe o 'rec' da linha da tabela

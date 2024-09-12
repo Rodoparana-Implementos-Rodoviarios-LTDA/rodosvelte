@@ -26,7 +26,7 @@
 	},
 	"private": true,
 	"scripts": {
-		"dev": "concurrently \"vite dev\" \"go run src/lib/backend/main.go\"",
+		"dev": "vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
@@ -40,6 +40,8 @@
 	"type": "module",
 	"dependencies": {
 		"@tabler/icons-svelte": "^3.14.0",
+		"@tanstack/svelte-query": "^5.56.1",
+		"@tanstack/svelte-table": "^8.20.5",
 		"date-fns": "^3.6.0",
 		"flatpickr": "^4.6.13",
 		"idb": "^8.0.0",

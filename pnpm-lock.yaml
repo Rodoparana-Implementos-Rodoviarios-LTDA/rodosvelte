@@ -11,6 +11,12 @@ importers:
       '@tabler/icons-svelte':
         specifier: ^3.14.0
         version: 3.15.0(svelte@4.2.19)
+      '@tanstack/svelte-query':
+        specifier: ^5.56.1
+        version: 5.56.1(svelte@4.2.19)
+      '@tanstack/svelte-table':
+        specifier: ^8.20.5
+        version: 8.20.5(svelte@4.2.19)
       date-fns:
         specifier: ^3.6.0
         version: 3.6.0
@@ -452,6 +458,24 @@ packages:
 
   '@tabler/icons@3.15.0':
     resolution: {integrity: sha512-Pzo7g8znsCgCcnSLCfukEV+kcfr0/VjBoCLXJtrOtaY94gtvYjWC2hrKzazf511asUflRuk/+dxztdKYJgpe4g==}
+
+  '@tanstack/query-core@5.56.1':
+    resolution: {integrity: sha512-hH9LvpGCr3yKbHUgi2b+vOwx2pj4dMFnGY7Cjvrm5mOqynWPr015h/GCLiSi5M5JaXXnB8VnLOSLh5KzjBh5fA==}
+
+  '@tanstack/svelte-query@5.56.1':
+    resolution: {integrity: sha512-krxXIMliWx2lKgdyuRcHkB3p7qXjoWtD2F3xkxKgiMdpXnS2Sr34rlyBWUBEE7giCA9Hg9AIayctKGSGlWCf1A==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
+
+  '@tanstack/svelte-table@8.20.5':
+    resolution: {integrity: sha512-sFqrA6zAt0mzreg3HWlcPeIwrfKp25tMDTrhkeq5GDzWthv/sW9bRFR3YGRcoxmtmHk3mS1wLQfJrotDXu7eDg==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      svelte: ^4.0.0 || ^3.49.0
+
+  '@tanstack/table-core@8.20.5':
+    resolution: {integrity: sha512-P9dF7XbibHph2PFRz8gfBKEXEY/HJPOhym8CHmjF8y3q5mWpKx9xtZapXQUWCgkqvsK0R46Azuz+VaxD4Xl+Tg==}
+    engines: {node: '>=12'}
 
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
@@ -1909,6 +1933,20 @@ snapshots:
       svelte: 4.2.19
 
   '@tabler/icons@3.15.0': {}
+
+  '@tanstack/query-core@5.56.1': {}
+
+  '@tanstack/svelte-query@5.56.1(svelte@4.2.19)':
+    dependencies:
+      '@tanstack/query-core': 5.56.1
+      svelte: 4.2.19
+
+  '@tanstack/svelte-table@8.20.5(svelte@4.2.19)':
+    dependencies:
+      '@tanstack/table-core': 8.20.5
+      svelte: 4.2.19
+
+  '@tanstack/table-core@8.20.5': {}
 
   '@types/cookie@0.6.0': {}
 
