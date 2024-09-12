@@ -13,8 +13,9 @@ import (
 // VARIÁVEIS GLOBAIS
 // ===================
 
+// Cache para armazenar os dados dos movimentos da portaria.
 var movimentosPortariaCache []MovimentoPortaria
-var mutex sync.Mutex
+var mutex sync.Mutex // Controla o acesso concorrente ao cache.
 
 // ===================
 // ESTRUTURAS DE DADOS
@@ -22,29 +23,15 @@ var mutex sync.Mutex
 
 // MovimentoPortaria representa os dados processados do movimento.
 type MovimentoPortaria struct {
-	Filial, NF, Cliente, Produto, TipoMov, DataHora, Responsavel, Placa, Observacao string
-	Saldo                                                                           int
+	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao string
+	Saldo                                                                            int
 }
 
 // RawMovimentoPortaria mapeia os dados brutos recebidos do endpoint.
 type RawMovimentoPortaria struct {
-	Filial        string `json:"Z08_FILIAL"`
-	Origem        string `json:"Z08_ORIGEM"`
-	Documento     string `json:"Z08_DOC"`
-	Serie         string `json:"Z08_SERIE"`
-	Cliente       string `json:"Z08_CLIFOR"`
-	Loja          string `json:"Z08_LOJA"`
-	ClienteNome   string `json:"A1_NOME"`
-	Codigo        string `json:"Z08_COD"`
-	Item          string `json:"Z08_ITEM"`
-	Descricao     string `json:"B1_DESC"`
-	TipoMovimento string `json:"Z08_TIPMOV"`
-	Data          string `json:"Z08_DATA"`
-	Hora          string `json:"Z08_HORA"`
-	Responsavel   string `json:"Z08_RESPON"`
-	Placa         string `json:"Z08_PLACA"`
-	Observacao    string `json:"Z08_OBSERV"`
-	Saldo         int    `json:"SALDO"`
+	Filial, Documento, Serie, Cliente, Loja, ClienteNome, Vendedor, VendedorNome,
+	Codigo, Item, Descricao, Data, Hora, Responsavel, Placa, Observacao string
+	Saldo int
 }
 
 // ===================
@@ -76,7 +63,7 @@ func StartFetchingMovimentosPortaria() {
 // HANDLER HTTP
 // ===================
 
-// GetMovimentosPortaria responde com os dados de movimentos da portaria filtrados, classificados e paginados.
+// GetMovimentosPortaria responde com os dados de movimentos da portaria atuais em cache.
 func GetMovimentosPortaria(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -88,45 +75,8 @@ func GetMovimentosPortaria(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Aplicar Filtros
-	filterableColumns := []string{"Filial", "NF", "Cliente", "Produto", "DataHora", "TipoMov"}
-	filteredMovimentos := applyFilters(movimentosPortariaCache, r, filterableColumns)
-
-	// Aplicar Classificação
-	sortedMovimentos := applySorting(filteredMovimentos, r)
-
-	// Aplicar Paginação
-	paginatedMovimentos := utils.Paginate(sortedMovimentos, r)
-
-	// Retorna os dados filtrados, classificados e paginados
-	json.NewEncoder(w).Encode(paginatedMovimentos)
-}
-
-// ===================
-// FUNÇÕES AUXILIARES
-// ===================
-
-// Função para aplicar filtros com base nos headers.
-func applyFilters(movimentos []MovimentoPortaria, r *http.Request, filterableColumns []string) []MovimentoPortaria {
-	return utils.FilterData(movimentos, r, filterableColumns)
-}
-
-// Função para aplicar a classificação com base nos headers.
-func applySorting(movimentos []MovimentoPortaria, r *http.Request) []MovimentoPortaria {
-	// Headers que determinam a coluna e ordem de classificação
-	sortBy := r.Header.Get("X-Sort-By")
-	sortOrder := r.Header.Get("X-Sort-Order")
-
-	// Define valores padrão se os headers não forem fornecidos
-	if sortBy == "" {
-		sortBy = "DataHora" // Valor padrão
-	}
-	if sortOrder == "" {
-		sortOrder = "desc" // Valor padrão
-	}
-
-	// Aplica a função de classificação genérica do utils
-	return utils.SortByColumn(movimentos, sortBy, sortOrder)
+	// Retorna os dados diretamente do cache, sem filtros ou ordenação.
+	json.NewEncoder(w).Encode(movimentosPortariaCache)
 }
 
 // ===================
@@ -140,14 +90,14 @@ func processMovimentosPortaria(rawMovimentos []RawMovimentoPortaria) []Movimento
 		movimento := MovimentoPortaria{
 			Filial:      utils.TrimString(raw.Filial),
 			NF:          utils.TrimString(raw.Documento) + " - " + utils.TrimString(raw.Serie),
+			Vendedor:    utils.TrimString(raw.Vendedor) + " - " + utils.TrimString(raw.VendedorNome),
 			Cliente:     utils.TrimString(raw.Cliente) + " - " + utils.TrimString(raw.Loja) + " - " + utils.TrimString(raw.ClienteNome),
 			Produto:     utils.TrimString(raw.Codigo) + " - " + utils.TrimString(raw.Item) + " - " + utils.TrimString(raw.Descricao),
-			TipoMov:     utils.MapTipoMovimento(raw.TipoMovimento),
+			Saldo:       raw.Saldo,
 			DataHora:    utils.FormatDate(utils.TrimString(raw.Data), "20060102", "02/01/2006") + " " + utils.TrimString(raw.Hora),
 			Responsavel: utils.TrimString(raw.Responsavel),
 			Placa:       utils.TrimString(raw.Placa),
 			Observacao:  utils.TrimString(raw.Observacao),
-			Saldo:       raw.Saldo,
 		}
 		processed = append(processed, movimento)
 	}

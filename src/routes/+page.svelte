@@ -1,29 +1,14 @@
-<script lang="ts">
+<script>
 	import { goto } from '$app/navigation';
 	import Logo from '$lib/components/theme/logo.svelte';
-	import { saveLoginData, getLoginData, clearLoginData } from '$lib/utils/idb';
 
-	let username: string = '';
-	let password: string = '';
-	let error: string = '';
-
-	// Função para carregar os dados de login do IndexedDB
-	async function loadLoginData() {
-		// Certifica-se de que estamos no cliente antes de tentar acessar o IndexedDB
-		if (typeof window !== 'undefined') {
-			const data = await getLoginData();
-			if (data) {
-				username = data.username;
-			}
-		}
-	}
-
-	// Chama a função ao carregar a página
-	loadLoginData();
+	let username = '';
+	let password = '';
+	let error = '';
 
 	// Função de login
 	async function handleLogin() {
-		error = '';
+		error = ''; // Reseta a mensagem de erro
 
 		try {
 			const bodyData = {
@@ -45,12 +30,14 @@
 				throw new Error(data.message || 'Falha no login');
 			}
 
-			// Salva os dados no IndexedDB
-			await saveLoginData(username, data.token);
+			// Salva o token e o username no sessionStorage
+			sessionStorage.setItem('token', data.access_token);
+			sessionStorage.setItem('username', username);
 
 			// Redireciona o usuário para a rota protegida
 			goto('/prenotas');
 		} catch (err) {
+			// Verificação do tipo de erro para evitar erro de tipo 'unknown'
 			if (err instanceof Error) {
 				error = err.message || 'Ocorreu um erro desconhecido';
 			} else {
@@ -59,6 +46,12 @@
 		}
 	}
 
+	// Função de logout para remover o token e redirecionar
+	function handleLogout() {
+		sessionStorage.removeItem('token');
+		sessionStorage.removeItem('username');
+		goto('/login'); // Redireciona para a página de login
+	}
 </script>
 
 <!-- Página de Login com Vídeo de Fundo -->
@@ -73,9 +66,7 @@
 	<div class="absolute inset-0 bg-black opacity-20"></div>
 
 	<!-- Card de Login -->
-	<div
-		class="relative z-10 bg-base-200 p-8 rounded-box shadow-lg w-96 backdrop-blur-lg bg-opacity-40"
-	>
+	<div class="relative z-10 bg-base-200 p-8 rounded-box shadow-lg w-96 backdrop-blur-lg bg-opacity-40">
 		<Logo />
 		<!-- Exibe mensagem de erro -->
 		{#if error}

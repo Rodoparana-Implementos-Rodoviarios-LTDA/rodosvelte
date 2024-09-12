@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import SortingIcon from './SortingIcon.svelte';
+	import SortableHeader from './SortableHeader.svelte';
 	import type { Column } from '$lib/types/tableTypes';
 
 	// Declarando o tipo genérico <T> para aceitar diferentes tipos de dados
@@ -42,12 +42,12 @@
 <!-- Tabela de dados -->
 <div class="overflow-hidden z-1">
 	<div class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
-		<table class="table table-pin-rows table-pin-cols z-0">
+		<table class="table  table-pin-rows table-pin-cols z-0">
 			<thead class="h-16">
 				<tr>
 					{#each columns as column}
 						<th class="">
-							<SortingIcon
+							<SortableHeader
 								title={column.header}
 								isSorted={sortBy === String(column.accessorKey) ? sortOrder : false}
 								onClick={() => toggleSort(column.accessorKey)}
