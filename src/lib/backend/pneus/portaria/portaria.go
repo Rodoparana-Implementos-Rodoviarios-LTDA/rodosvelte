@@ -1,7 +1,7 @@
 package portaria
 
 import (
-	"backend/utils" // Pacote utils com as funções genéricas
+	"backend/utils"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -10,53 +10,35 @@ import (
 )
 
 // ===================
-// VARIÁVEIS
+// VARIÁVEIS GLOBAIS
 // ===================
 
+// Cache para armazenar os dados dos movimentos da portaria.
 var movimentosPortariaCache []MovimentoPortaria
-var mutex sync.Mutex
+var mutex sync.Mutex // Controla o acesso concorrente ao cache.
 
 // ===================
-// ESTRUTURAS
+// ESTRUTURAS DE DADOS
 // ===================
 
+// MovimentoPortaria representa os dados processados do movimento.
 type MovimentoPortaria struct {
-	Filial      string `json:"Filial"`
-	NF          string `json:"NF"`       // Documento + Série
-	Vendedor    string `json:"Vendedor"` // F2_VEND1 + A3_NOME
-	Cliente     string `json:"Cliente"`  // D2_CLIENTE + D2_LOJA + A1_NOME
-	Produto     string `json:"Produto"`  // D2_COD + D2_ITEM + B1_DESC
-	Saldo       int    `json:"Saldo"`    // SALDO
-	DataHora    string `json:"DataHora"` // Data + Hora combinadas
-	Responsavel string `json:"Responsavel"`
-	Placa       string `json:"Placa"`
-	Observacao  string `json:"Observacao"`
+	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao string
+	Saldo                                                                            int
 }
 
+// RawMovimentoPortaria mapeia os dados brutos recebidos do endpoint.
 type RawMovimentoPortaria struct {
-	Filial       string `json:"D2_FILIAL"`
-	Documento    string `json:"D2_DOC"`
-	Serie        string `json:"D2_SERIE"`
-	Cliente      string `json:"D2_CLIENTE"`
-	Loja         string `json:"D2_LOJA"`
-	ClienteNome  string `json:"A1_NOME"`
-	Vendedor     string `json:"F2_VEND1"`
-	VendedorNome string `json:"A3_NOME"`
-	Codigo       string `json:"D2_COD"`
-	Item         string `json:"D2_ITEM"`
-	Descricao    string `json:"B1_DESC"`
-	Saldo        int    `json:"SALDO"`
-	Data         string `json:"Z08_DATA"`
-	Hora         string `json:"Z08_HORA"`
-	Responsavel  string `json:"Z08_RESPON"`
-	Placa        string `json:"Z08_PLACA"`
-	Observacao   string `json:"Z08_OBSERV"`
+	Filial, Documento, Serie, Cliente, Loja, ClienteNome, Vendedor, VendedorNome,
+	Codigo, Item, Descricao, Data, Hora, Responsavel, Placa, Observacao string
+	Saldo int
 }
 
 // ===================
-// REQUISIÇÃO HTTP
+// REQUISIÇÃO E CACHE
 // ===================
 
+// StartFetchingMovimentosPortaria inicia a atualização periódica do cache de movimentos da portaria.
 func StartFetchingMovimentosPortaria() {
 	go func() {
 		for {
@@ -64,31 +46,26 @@ func StartFetchingMovimentosPortaria() {
 			movimentos, err := utils.FetchFromEndpoint[RawMovimentoPortaria]("http://protheus-vm:9010/rest/MovPortaria/MovimentosPorNF", nil)
 			if err != nil {
 				log.Printf("Erro ao buscar movimentos da portaria: %v", err)
-			} else {
-				processedMovimentos := processMovimentosPortaria(movimentos)
-				mutex.Lock()
-				movimentosPortariaCache = processedMovimentos // Atualiza o cache
-				mutex.Unlock()
-				log.Println("Importação de movimentos da portaria concluída com sucesso!")
+				continue
 			}
-			time.Sleep(1 * time.Minute) // Intervalo de 1 minuto
+
+			mutex.Lock()
+			movimentosPortariaCache = processMovimentosPortaria(movimentos)
+			mutex.Unlock()
+
+			log.Println("Cache de movimentos da portaria atualizado com sucesso!")
+			time.Sleep(1 * time.Minute) // Atualiza o cache a cada minuto
 		}
 	}()
 }
 
+// ===================
+// HANDLER HTTP
+// ===================
+
+// GetMovimentosPortaria responde com os dados de movimentos da portaria atuais em cache.
 func GetMovimentosPortaria(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	// Pega os parâmetros de paginação e ordenação
-	page, pageSize := utils.GetPaginationParams(r)
-	filters := utils.GetFilters(r)
-	sortBy, sortOrder := utils.GetSortingParams(r, map[string]bool{
-		"Filial":   true,
-		"NF":       true,
-		"Cliente":  true,
-		"DataHora": true,
-		"TipoMov":  true,
-	})
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -98,16 +75,15 @@ func GetMovimentosPortaria(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Chama as funções auxiliares para filtrar, ordenar e paginar
-	filteredMovimentos := filterMovimentosPortaria(movimentosPortariaCache, filters)
-	sortedMovimentos := sortMovimentosPortaria(filteredMovimentos, sortBy, sortOrder)
-	paginatedMovimentos := paginateMovimentosPortaria(sortedMovimentos, page, pageSize)
-
-	// Retorna os dados paginados
-	json.NewEncoder(w).Encode(paginatedMovimentos)
+	// Retorna os dados diretamente do cache, sem filtros ou ordenação.
+	json.NewEncoder(w).Encode(movimentosPortariaCache)
 }
 
-// Função para processar e ajustar os dados dos movimentos
+// ===================
+// PROCESSAMENTO DOS DADOS
+// ===================
+
+// processMovimentosPortaria converte os dados brutos em dados processados para exibição.
 func processMovimentosPortaria(rawMovimentos []RawMovimentoPortaria) []MovimentoPortaria {
 	var processed []MovimentoPortaria
 	for _, raw := range rawMovimentos {
@@ -126,46 +102,4 @@ func processMovimentosPortaria(rawMovimentos []RawMovimentoPortaria) []Movimento
 		processed = append(processed, movimento)
 	}
 	return processed
-}
-
-// ===================
-// PARÂMETROS DA REQUISIÇÃO
-// ===================
-
-func filterMovimentosPortaria(movimentos []MovimentoPortaria, filters map[string]string) []MovimentoPortaria {
-	return utils.FilterData(movimentos, filters, func(item MovimentoPortaria, key, value string) bool {
-		switch key {
-		case "Filial":
-			return item.Filial == value
-		case "NF":
-			return item.NF == value
-		case "Cliente":
-			return item.Cliente == value
-		case "DataHora":
-			return item.DataHora == value
-		default:
-			return true
-		}
-	})
-}
-
-func sortMovimentosPortaria(movimentos []MovimentoPortaria, sortBy, sortOrder string) []MovimentoPortaria {
-	return utils.SortData(movimentos, sortBy, sortOrder, func(i, j MovimentoPortaria) bool {
-		switch sortBy {
-		case "Filial":
-			return i.Filial < j.Filial
-		case "NF":
-			return i.NF < j.NF
-		case "Cliente":
-			return i.Cliente < j.Cliente
-		case "DataHora":
-			return i.DataHora < j.DataHora
-		default:
-			return true
-		}
-	})
-}
-
-func paginateMovimentosPortaria(movimentos []MovimentoPortaria, page, pageSize int) []MovimentoPortaria {
-	return utils.Paginate(movimentos, page, pageSize)
 }

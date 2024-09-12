@@ -7,6 +7,13 @@ export const lightThemes = [
       title: 'text-[#000000]' 
     },
     { 
+      name: 'nord', 
+      colors: ['bg-[#88c0d0]', 'bg-[#81a1c1]', 'bg-[#5e81ac]', 'bg-[#4c566a]'], 
+      bg: 'bg-[#eceff4]', 
+      rounded: 'rounded-md', 
+      title: 'text-[#454a56]' 
+    },
+    { 
       name: 'cupcake', 
       colors: ['bg-[#65c3c8]', 'bg-[#f3cc30]', 'bg-[#fae3b0]', 'bg-[#ffb6b9]'], 
       bg: 'bg-[#fafafa]', 
@@ -110,7 +117,8 @@ export const lightThemes = [
       bg: 'bg-[#ffffff]', 
       rounded: 'rounded-xl', 
       title: 'text-[#394e6a]' 
-    }
+    },
+
   ];
   
   
@@ -129,13 +137,7 @@ export const lightThemes = [
       rounded: 'rounded-xl', 
       title: 'text-[#ffffff]' 
     },
-    { 
-      name: 'cyberpunk', 
-      colors: ['bg-[#ffd300]', 'bg-[#ff4b82]', 'bg-[#04d9ff]', 'bg-[#ffac1c]'], 
-      bg: 'bg-[#ffff00]', 
-      rounded: 'rounded-md', 
-      title: 'text-[#000000]' 
-    },
+
     { 
       name: 'halloween', 
       colors: ['bg-[#f97316]', 'bg-[#d97706]', 'bg-[#ea580c]', 'bg-[#3f6212]'], 
@@ -149,20 +151,6 @@ export const lightThemes = [
       bg: 'bg-[#171212]', 
       rounded: 'rounded-full', 
       title: 'text-[#cbc9c9]' 
-    },
-    { 
-      name: 'aqua', 
-      colors: ['bg-[#3b82f6]', 'bg-[#2563eb]', 'bg-[#1e3a8a]', 'bg-[#60a5fa]'], 
-      bg: 'bg-[#111827]', 
-      rounded: 'rounded-md', 
-      title: 'text-[#60a5fa]' 
-    },
-    { 
-      name: 'lofi', 
-      colors: ['bg-[#000000]', 'bg-[#111827]', 'bg-[#1f2937]', 'bg-[#374151]'], 
-      bg: 'bg-[#1e1e1e]', 
-      rounded: 'rounded-md', 
-      title: 'text-[#ffffff]' 
     },
     { 
       name: 'black', 
@@ -205,13 +193,6 @@ export const lightThemes = [
       bg: 'bg-[#002b36]', 
       rounded: 'rounded-md', 
       title: 'text-[#93a1a1]' 
-    },
-    { 
-      name: 'nord', 
-      colors: ['bg-[#88c0d0]', 'bg-[#81a1c1]', 'bg-[#5e81ac]', 'bg-[#4c566a]'], 
-      bg: 'bg-[#2e3440]', 
-      rounded: 'rounded-md', 
-      title: 'text-[#eceff4]' 
     },
     { 
       name: 'sunset', 

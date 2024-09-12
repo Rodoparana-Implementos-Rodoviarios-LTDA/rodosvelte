@@ -14,6 +14,7 @@ export interface Column<T> {
     [key: string]: any; // Dados da tabela com chave genérica
   }
   export interface PreNota {
+
     Filial: string;
     NF: string;
     Status: string;
@@ -26,6 +27,7 @@ export interface Column<T> {
     Prioridade: string;
     Usuario: string;
     Obs: string;
+    Rec: string;
     actions?: () => void; // Ações como função opcional
   }
   

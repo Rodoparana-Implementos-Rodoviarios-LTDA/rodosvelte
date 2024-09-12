@@ -8,7 +8,7 @@ import (
 	"backend/login"
 	"backend/pneus/borracharia"
 	"backend/pneus/portaria"
-	"backend/prenotas"
+	"backend/prenotas/tabela"
 )
 
 // Middleware para habilitar CORS
@@ -35,16 +35,16 @@ func enableCors(next http.Handler) http.Handler {
 }
 
 func main() {
-	// Inicia o processo de busca periódica das pre_notas, borracharia e portaria
-	prenotas.StartFetchingPreNotas()
+	// Inicia o processo de busca periódica das pre_notas, borracharia, portaria e revisao
+	tabela.StartFetchingPreNotas()          // Iniciar busca periódica para pre_notas
 	portaria.StartFetchingMovimentosPortaria() // Iniciar busca periódica para portaria
 	borracharia.StartFetchingBorracharia()     // Iniciar busca periódica para borracharia
 
 	// Multiplexer de rotas
 	mux := http.NewServeMux()
 
-	// Registrar a rota de pre_notas
-	mux.HandleFunc("/api/prenotas", prenotas.GetPreNotas)
+	// Registrar as rotas de pre_notas
+	mux.HandleFunc("/api/prenotas", tabela.GetPreNotas)
 
 	// Registrar a rota de login
 	mux.HandleFunc("/api/login", login.AuthHandler)
@@ -55,6 +55,8 @@ func main() {
 	// Registrar a rota de portaria
 	mux.HandleFunc("/api/portaria", portaria.GetMovimentosPortaria)
 
+
+
 	// Adiciona o middleware de CORS ao multiplexer de rotas
 	handler := enableCors(mux)
 
@@ -62,3 +64,4 @@ func main() {
 	fmt.Println("Server started on :8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
 }
+	

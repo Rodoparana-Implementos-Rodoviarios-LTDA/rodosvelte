@@ -5,8 +5,7 @@
 	import { page } from '$app/stores'; // Para acessar a URL atual
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
-	import
-
+	
 	onMount(() => {
 		const token = sessionStorage.getItem('token'); // Obtém o token do sessionStorage
 

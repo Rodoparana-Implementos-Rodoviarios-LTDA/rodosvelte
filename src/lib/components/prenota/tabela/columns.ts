@@ -70,6 +70,7 @@ export const columns: Column<PreNota>[] = [
   {
     header: 'Ações',
     accessorKey: 'actions',
-    component: ActionDropdown // Componente que renderiza o dropdown de ações
+    component: ActionDropdown, // Componente que renderiza o dropdown de ações
+    props: (row: PreNota) => ({ rec: row.Rec }) // Passa o "Rec" para o ActionDropdown
   }
 ];

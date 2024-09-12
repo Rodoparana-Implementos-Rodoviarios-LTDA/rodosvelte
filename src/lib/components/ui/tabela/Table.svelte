@@ -41,7 +41,7 @@
 
 <!-- Tabela de dados -->
 <div class="overflow-hidden z-1">
-	<div class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] border border-primary rounded-btn shadow-md">
+	<div class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
 		<table class="table  table-pin-rows table-pin-cols z-0">
 			<thead class="h-16">
 				<tr>

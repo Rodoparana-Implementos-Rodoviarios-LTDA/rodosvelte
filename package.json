@@ -40,6 +40,7 @@
 	"type": "module",
 	"dependencies": {
 		"@tabler/icons-svelte": "^3.14.0",
+		"date-fns": "^3.6.0",
 		"flatpickr": "^4.6.13",
 		"idb": "^8.0.0",
 		"radix-svelte": "^0.9.0",
