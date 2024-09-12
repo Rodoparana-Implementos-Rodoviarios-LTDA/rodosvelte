@@ -10,22 +10,48 @@ export interface Column<T> {
 }
 
 
-  export interface TableData {
-    [key: string]: any; // Dados da tabela com chave genérica
-  }
-  export interface PreNota {
-    Filial: string;
-    NF: string;
-    Status: string;
-    Fornecedor: string;
-    Emissao: string;
-    Inclusao: string;
-    Vencimento: string;
-    Valor: string;
-    Tipo: string;
-    Prioridade: string;
-    Usuario: string;
-    Obs: string;
+export interface TableData {
+  [key: string]: any; // Dados da tabela com chave genérica
+}
+export interface PreNota {
+  Filial: string;
+  NF: string;
+  Status: string;
+  Fornecedor: string;
+  Emissao: string;
+  Inclusao: string;
+  Vencimento: string;
+  Valor: string;
+  Tipo: string;
+  Prioridade: string;
+  Usuario: string;
+  Obs: string;
+  Cliente?: string;  // Optional if not always present
+  Vendedor?: string; // Optional if not always present
+  Produto?: string;  // Optional if not always present
+  Saldo?: number;    // Optional if not always present
 
-  }
-  
+}
+export interface borracharia {
+  Filial: string;
+  NF: string;
+  Cliente: string;
+  Vendedor: string;
+  Produto: string;
+  Saldo: string;
+  Emissao: string;
+}
+
+
+export interface BorrachariaData {
+  Filial: string;
+  NF: string;
+  Vendedor: string;
+  Cliente: string;
+  Produto: string;
+  Saldo: number;
+  Emissao: string;
+  Responsavel: string;
+  Placa: string;
+  Observacao: string;
+}

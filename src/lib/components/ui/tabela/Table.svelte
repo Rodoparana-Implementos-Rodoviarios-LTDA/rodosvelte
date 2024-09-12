@@ -38,15 +38,14 @@
     }
   }
 </script>
-
 <!-- Tabela de dados -->
 <div class="overflow-hidden z-1">
   <div class="overflow-auto w-[95dvw] h-[70dvh] border border-primary rounded-btn shadow-md">
-    <table class="table table-sm w-full">
+    <table class="table w-full text-center" style="table-layout: auto;">
       <thead>
         <tr>
           {#each columns as column}
-            <th>
+            <th class="">
               <SortableHeader
                 title={column.header}
                 isSorted={sortBy === String(column.accessorKey) ? sortOrder : false}
@@ -63,26 +62,23 @@
             <td colspan={columns.length}>Nenhum dado encontrado</td>
           </tr>
         {:else}
-          {#each pageData as row}
-            <tr>
-              {#each columns as column}
-                <td class="truncate max-w-56 font-medium">
-                  <!-- Renderiza o componente customizado ou o valor diretamente -->
-                  {#if column.component}
-                    <!-- Verifica se props existe antes de invocar -->
-                    <svelte:component this={column.component} {...(column.props ? column.props(row) : {})} />
-                  {:else}
-                    {row[String(column.accessorKey)]} <!-- Garante que accessorKey seja string -->
-                  {/if}
-                </td>
-              {/each}
-            </tr>
+        {#each pageData as row}
+        <tr>
+          {#each columns as column}
+            <td class="relative max-w-56  text-start font-medium break-words">
+              {#if column.component}
+                <svelte:component this={column.component} {...(column.props ? column.props(row) : {})} />
+              {:else}
+                {row[String(column.accessorKey)]}
+              {/if}
+            </td>
           {/each}
+        </tr>
+      {/each}
         {/if}
       </tbody>
     </table>
   </div>
-
   <!-- Controles de navegação -->
   <div class="flex justify-between mt-4">
     <button class="btn btn-outline" on:click={prevPage} disabled={currentPage === 1}>
