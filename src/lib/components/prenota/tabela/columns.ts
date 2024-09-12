@@ -2,8 +2,10 @@
 import type { Column, PreNota } from '$lib/types/tableTypes';
 import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte';
 import StatusIcon from './StatusIcon.svelte';
-import DateCell from './DateCell.svelte';
+import DateCell from './DateCell.svelte'
+import ActionDropdown from './ActionDropdown.svelte';
 import HoverText from '$lib/components/ui/tabela/HoverText.svelte';
+
 export const columns: Column<PreNota>[] = [
   {
     accessorKey: 'Usuario',  // Usa o nome exato da chave no objeto PreNota
@@ -27,8 +29,8 @@ export const columns: Column<PreNota>[] = [
     cell: (row: PreNota) => row.Fornecedor
   },
   {
-    accessorKey: 'Vencimento',
-    header: 'Vencimento',
+    accessorKey: 'Inclusao',
+    header: 'Inclusão',
     component: DateCell,
     props: (row: PreNota) => ({
       rawDateInclusion: row.Inclusao,
@@ -64,5 +66,11 @@ export const columns: Column<PreNota>[] = [
     header: 'Observações',
     component: HoverText,  // Usando HoverText para exibir observação completa ao passar o mouse
     props: (row: PreNota) => ({ text: row.Obs })
+  },
+  {
+    header: 'Ações',
+    accessorKey: 'actions',
+    component: ActionDropdown, // Componente que renderiza o dropdown de ações
+    props: (row: PreNota) => ({ rec: row.Rec }) // Passa o "Rec" para o ActionDropdown
   }
 ];

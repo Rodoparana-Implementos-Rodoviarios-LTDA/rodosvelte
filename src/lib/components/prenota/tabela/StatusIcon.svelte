@@ -81,7 +81,7 @@
 <!-- Radix HoverCard para exibir o ícone e descrição -->
 <HoverCard.Root>
 	<HoverCard.Trigger>
-		<div class="w-full flex items-center justify-center">
+		<div class="w-full flex items-center justify-start">
 			<IconComponent class={`size-5 2xl:size-7 ${colorClass}`} />
 		</div>
 	</HoverCard.Trigger>

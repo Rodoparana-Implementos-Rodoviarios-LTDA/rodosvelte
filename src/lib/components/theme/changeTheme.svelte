@@ -1,66 +1,130 @@
 <script lang="ts">
-  import { BrightnessHalf } from 'tabler-icons-svelte'; // Ícone para o tema
+	import { onMount } from 'svelte';
+	import { IconBrightnessHalf } from '@tabler/icons-svelte';
+	import { lightThemes, darkThemes } from './themes';
 
-  let lightThemes = [
-    { name: 'winter', colors: ['bg-[#5e81ac]', 'bg-[#81a1c1]', 'bg-[#88c0d0]', 'bg-[#4c566a]'], bg: 'bg-[#ffffff]', rounded: 'rounded-xl', title: 'text-[#394e6a]' },
-    { name: 'autumn', colors: ['bg-[#8c0327]', 'bg-[#d85251]', 'bg-[#d59b6a]', 'bg-[#1a1a1a]'], bg: 'bg-[#f1f1f1]', rounded: 'rounded-md', title: 'text-[#141414]' },
-    { name: 'valentine', colors: ['bg-[#5e81ac]', 'bg-[#81a1c1]', 'bg-[#88c0d0]', 'bg-[#4c566a]'], bg: 'bg-[#fae7f4]', rounded: 'rounded-full', title: 'text-[#632c3b]' }
-  ];
+	let selectedTheme: string = 'light'; // Tema padrão
+	let isLightMode: boolean = true; // Controla se está no modo claro ou escuro
 
-  let darkThemes = [
-    { name: 'sunset', colors: ['bg-[#ff865b]', 'bg-[#fd6f9c]', 'bg-[#b387fa]', 'bg-[#826a5c]'], bg: 'bg-[#121c22]', rounded: 'rounded-lg', title: 'text-[#9fb9d0]' },
-    { name: 'dracula', colors: ['bg-[#ff79c6]', 'bg-[#bd93f9]', 'bg-[#ffb86c]', 'bg-[#414558]'], bg: 'bg-[#282a36]', rounded: 'rounded-xl', title: 'text-[#f8f8f2]' },
-    { name: 'forest', colors: ['bg-[#1eb854]', 'bg-[#1db88e]', 'bg-[#1db8ab]', 'bg-[#19362d]'], bg: 'bg-[#171212]', rounded: 'rounded-full', title: 'text-[#cbc9c9]' }
-  ];
+	// Função para alterar o tema e salvar no localStorage
+	function changeTheme(theme: string): void {
+		selectedTheme = theme;
+		document.documentElement.setAttribute('data-theme', theme);
+		localStorage.setItem('selectedTheme', theme); // Armazena o tema no localStorage
+	}
 
-  let selectedTheme: string = 'winter'; // O tema padrão
+	// Alternar entre claro e escuro
+	function toggleTheme(): void {
+		isLightMode = !isLightMode;
+		const theme = isLightMode ? 'light' : 'dark';
+		changeTheme(theme); // Altera o tema dinamicamente
+	}
 
-  function changeTheme(theme: string): void {
-    selectedTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme); // Aplica o tema no <html>
-  }
+	// Carrega o tema salvo no localStorage ao montar o componente
+	onMount(() => {
+		const savedTheme = localStorage.getItem('selectedTheme');
+		if (savedTheme) {
+			selectedTheme = savedTheme;
+			isLightMode = savedTheme === 'light'; // Ajusta o checkbox
+			document.documentElement.setAttribute('data-theme', savedTheme);
+		}
+	});
 </script>
 
-<!-- Accordion para o ThemeChanger -->
-<div class="collapse collapse-arrow  bg-base-300">
-  <input type="checkbox" class="peer" />
-  <div class="collapse-title font-medium uppercase tracking-wide text-sm text-secondary">
-   Tema
-  </div>
+<!-- Estrutura do drawer -->
+<div class="drawer drawer-end">
+	<input id="themeDrawer" type="checkbox" class="drawer-toggle" />
 
-  <div class="collapse-content">
-    <ul class="space-y-1">
-      {#each lightThemes as theme}
-        <li>
-          <button
-            class={`btn text-sm flex justify-between ${theme.rounded} ${theme.bg}`}
-            on:click={() => changeTheme(theme.name)}
-          >
-            <span class={`${theme.title} font-medium`}>{theme.name}</span>
-            <div class="flex space-x-1">
-              {#each theme.colors as color}
-                <div class={`rounded-full h-5 w-2 ${color}`}></div>
-              {/each}
-            </div>
-          </button>
-        </li>
-      {/each}
+	<div class="drawer-content">
+		<!-- Botão para abrir o drawer -->
+		<label
+			for="themeDrawer"
+			class="btn btn-primary fixed top-5 right-5 z-0"
+			aria-label="Alterar tema"
+		>
+			<IconBrightnessHalf class="inline-block h-5 w-5" />
+		</label>
+	</div>
 
-      {#each darkThemes as theme}
-        <li>
-          <button
-            class={`btn text-sm flex justify-between ${theme.rounded} ${theme.bg}`}
-            on:click={() => changeTheme(theme.name)}
-          >
-            <span class={`font-medium ${theme.title}`}>{theme.name}</span>
-            <div class="flex space-x-1">
-              {#each theme.colors as color}
-                <div class={`rounded-full h-5 w-2 ${color}`}></div>
-              {/each}
-            </div>
-          </button>
-        </li>
-      {/each}
-    </ul>
-  </div>
+	<!-- Conteúdo do drawer -->
+	<div class="drawer-side z-[100]">
+		<label for="themeDrawer" class="drawer-overlay" aria-label="Fechar tema"></label>
+
+		<ul class="menu bg-base-200 text-base-content min-h-full w-46 p-4 space-y-4 overflow-y-auto">
+			<!-- Alternador de modo claro/escuro -->
+			<div class="flex items-center gap-2 p-4">
+				<!-- Ícone de Sol (modo claro) -->
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<circle cx="12" cy="12" r="5" />
+					<path
+						d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"
+					/>
+				</svg>
+
+				<!-- DaisyUI Toggle -->
+        <input type="checkbox" class="toggle" checked="checked" on:change={toggleTheme}/>
+
+				<!-- Ícone de Lua (modo escuro) -->
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
+					<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+				</svg>
+			</div>
+			<!-- Renderiza temas claros ou escuros com base na seleção -->
+			{#if isLightMode}
+				<!-- Light Themes -->
+				{#each lightThemes as theme}
+					<li class="pb-2">
+						<button
+							class={`btn text-sm flex w-full ${theme.rounded} ${theme.bg}`}
+							on:click={() => changeTheme(theme.name)}
+						>
+							<span class={`${theme.title} font-medium`}>{theme.name}</span>
+							<div class="flex space-x-1">
+								{#each theme.colors as color}
+									<div class={`rounded-full h-5 w-2 ${color}`}></div>
+								{/each}
+							</div>
+						</button>
+					</li>
+				{/each}
+			{:else}
+				<!-- Dark Themes -->
+				{#each darkThemes as theme}
+					<li class="pb-2">
+						<button
+							class={`btn text-sm flex justify-between w-full ${theme.rounded} ${theme.bg}`}
+							on:click={() => changeTheme(theme.name)}
+						>
+							<span class={`font-medium ${theme.title}`}>{theme.name}</span>
+							<div class="flex space-x-1">
+								{#each theme.colors as color}
+									<div class={`rounded-full h-5 w-2 ${color}`}></div>
+								{/each}
+							</div>
+						</button>
+					</li>
+				{/each}
+			{/if}
+		</ul>
+	</div>
 </div>

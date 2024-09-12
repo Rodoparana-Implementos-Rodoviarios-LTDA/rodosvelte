@@ -5,13 +5,16 @@
 	import { columns } from '$lib/components/prenota/tabela/columns'; // Importa as colunas
 	import Filters from '$lib/components/prenota/tabela/Filters.svelte'; // Componente de Filtros
 	import type { PreNota } from '$lib/types/tableTypes';
-  
+	import {IconFilter} from "@tabler/icons-svelte"
 	let isLoading = true;
 	let currentPage = 1;
 	let preNotas: PreNota[] = [];
 	let hasMore = true;
 	let sortBy: string | undefined = undefined;
 	let sortOrder: 'asc' | 'desc' | undefined = undefined;
+
+	// Estado para definir o endpoint dinamicamente
+	export let endpoint: string = "prenotas"; // Valor default (pode ser passado de fora)
   
 	// Estados para filtros
 	let selectedStatus = '';
@@ -24,11 +27,12 @@
 	async function loadPage(page = 1, filters = {}) {
 	  isLoading = true;
 	  try {
-		const result = await dataFetching(page, 10, sortBy, sortOrder, filters);
+		// Passa o endpoint dinâmico para a função de fetch
+		const result = await dataFetching(endpoint, page, 15, sortBy, sortOrder, filters);
 		preNotas = result.data;
 		hasMore = result.hasMore;
 	  } catch (error) {
-		console.error('Erro ao carregar pre_notas:', error);
+		console.error(`Erro ao carregar dados de ${endpoint}:`, error);
 	  } finally {
 		isLoading = false;
 	  }
@@ -68,13 +72,13 @@
 	onMount(() => {
 	  loadPage(currentPage);
 	});
-  </script>
+</script>
   
-  <div class="h-full">
+<div class="h-full">
 	<!-- Cabeçalho com o título e botão de filtros -->
 	<div class="flex justify-between items-center p-2 font-bold text-xl text-accent">
 	  <h1>Listagem de Pré Documentos de Entrada</h1>
-	  <label for="filters-drawer" class="btn btn-outline btn-secondary">Filtros</label>
+	  <label for="filters-drawer" class="btn btn-outline z-00"><IconFilter/></label>
 	</div>
   
 	<!-- Drawer de Filtros -->
@@ -101,7 +105,7 @@
 	  </div>
 	
 	  <!-- Drawer Lateral de Filtros -->
-	  <div class="drawer-side">
+	  <div class="drawer-side z-50">
 		<label for="filters-drawer" class="drawer-overlay"></label>
 		<Filters
 		  bind:selectedStatus
@@ -113,5 +117,4 @@
 		/>
 	  </div>
 	</div>
-  </div>
-  
+</div>
