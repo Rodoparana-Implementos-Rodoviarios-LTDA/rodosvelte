@@ -1,13 +1,12 @@
 // src/lib/types/tableTypes.ts
-// src/lib/types/tableTypes.ts
-// src/lib/types/tableTypes.ts
+
 export interface Column<T> {
-	header: string; // O rótulo da coluna (cabeçalho)
-	accessorKey: keyof T; // Chave usada para acessar o dado no objeto T
-	cell?: (row: T) => any; // Função opcional para customizar a célula
-	component?: any; // Componente opcional para renderização de células dinâmicas
-	props?: (row: T) => Record<string, any>; // Propriedades opcionais passadas para o componente
-	isFilterable?: boolean;
+	header: string;
+	accessorKey: keyof T;
+	cell?: (row: T) => any;
+	component?: any;
+	props?: (row: T) => Record<string, any>;
+	isFilterable: boolean; // Agora isFilterable é sempre booleano
 }
 
 export interface TableData {
@@ -51,4 +50,20 @@ export interface BorrachariaData {
 	Responsavel: string;
 	Placa: string;
 	Observacao: string;
+}
+
+export interface PreNotaTabela {
+	'X-Filter-Filial': string;
+	'X-Filter-NF': string;
+	'X-Filter-Status': string;
+	'X-Filter-Fornecedor': string;
+	'X-Filter-Emissao': string;
+	'X-Filter-Inclusao': string;
+	'X-Filter-Vencimento': string;
+	'X-Filter-Valor': string;
+	'X-Filter-Tipo': string;
+	'X-Filter-Prioridade': string;
+	'X-Filter-Usuario': string;
+	'X-Filter-Obs': string;
+	'X-Filter-Rec': string;
 }

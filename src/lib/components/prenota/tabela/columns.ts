@@ -4,7 +4,7 @@ import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import ActionDropdown from './ActionDropdown.svelte';
 import HoverText from '$lib/components/ui/tabela/HoverText.svelte';
-import Filtrar from './Filtrar.svelte';
+
 
 export const columns: Column<PreNota>[] = [
   {
@@ -12,25 +12,25 @@ export const columns: Column<PreNota>[] = [
     header: 'Usuário',
     component: UserAvatar,
     props: (row: PreNota) => ({ username: row.Usuario }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Filial',
     header: 'Filial',
     cell: (row: PreNota) => row.Filial,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'NF',
     header: 'Nota Fiscal',
     cell: (row: PreNota) => row.NF,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Fornecedor',
     header: 'Fornecedor',
     cell: (row: PreNota) => row.Fornecedor,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Inclusao',
@@ -41,47 +41,47 @@ export const columns: Column<PreNota>[] = [
       rawDateEmission: row.Emissao,
       rawDateDue: row.Vencimento
     }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Valor',
     header: 'Valor',
     cell: (row: PreNota) => row.Valor,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Tipo',
     header: 'Tipo',
     component: StatusIcon,
     props: (row: PreNota) => ({ type: 'Tipo', value: row.Tipo }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Status',
     header: 'Status',
     component: StatusIcon,
     props: (row: PreNota) => ({ type: 'Status', value: row.Status }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Prioridade',
     header: 'Prioridade',
     component: StatusIcon,
     props: (row: PreNota) => ({ type: 'Prioridade', value: row.Prioridade }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'Obs',
     header: 'Observações',
     component: HoverText,
     props: (row: PreNota) => ({ text: row.Obs }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
+    isFilterable: true
   },
   {
     accessorKey: 'actions',
-    header: Filtrar,  // Passa o componente Filtrar no lugar do cabeçalho
+    header: 'Histórico',
     component: ActionDropdown,
     props: (row: PreNota) => ({ rec: row.Rec }),
-    isFilterable: false  // Não é filtrável, já que é um campo de ações
+    isFilterable: false  // Ações lógicas, portanto, não é filtrável
   }
 ];

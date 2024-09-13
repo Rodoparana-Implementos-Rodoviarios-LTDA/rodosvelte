@@ -4,6 +4,7 @@
 	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetch para os dados
 	import { columns } from '$lib/components/prenota/tabela/columns'; // Importa as colunas
 	import type { PreNota } from '$lib/types/tableTypes';
+	import Filtrar from '$lib/components/prenota/tabela/Filtrar.svelte'; // Importa o componente Filtrar
 
 	// Estados de carregamento e paginação
 	let isLoading = true;
@@ -12,16 +13,17 @@
 	let preNotas: PreNota[] = [];
 	let hasMore = true;
 
-	// Estado para definir o endpoint e ordenação
+	// Estado para definir o endpoint, ordenação e filtros
 	export let endpoint: string = 'api/prenotas';
 	export let sortBy: string = 'Inclusao'; // Campo para ordenar (dinâmico)
 	export let sortOrder: 'asc' | 'desc' = 'desc'; // Ordem de classificação (dinâmico)
+	let filters: Record<string, string> = {}; // Filtros aplicados
 
 	// Função para carregar os dados da página atual
 	async function loadPage(page: number = 1) {
 		isLoading = true;
 		try {
-			const result = await dataFetching(endpoint, sortBy, sortOrder, page, pageSize);
+			const result = await dataFetching(endpoint, sortBy, sortOrder, page, pageSize, filters);
 			preNotas = result.data;
 			hasMore = result.hasMore;
 		} catch (error) {
@@ -31,14 +33,21 @@
 		}
 	}
 
-	// Escuta quando o componente Table emite o evento de ordenação
+	// Função que escuta o evento de filtros aplicados e carrega a nova página com os filtros
+	function handleFiltersApplied(event) {
+		filters = event.detail; // Atualiza os filtros recebidos do Filtrar.svelte
+		currentPage = 1; // Reseta para a primeira página quando os filtros são aplicados
+		loadPage(currentPage); // Recarrega os dados com os filtros aplicados
+	}
+
+	// Função para mudança de ordenação
 	function handleSortChange(event) {
 		sortBy = event.detail.sortBy;
 		sortOrder = event.detail.sortOrder;
 		loadPage(); // Recarrega a página com a nova ordenação
 	}
 
-	// Escuta quando o componente Table emite o evento de mudança de página
+	// Função para mudança de página
 	function handlePageChange(event) {
 		currentPage = event.detail; // Atualiza a página atual
 		loadPage(currentPage); // Carrega os dados da nova página
@@ -55,6 +64,9 @@
 	<!-- Cabeçalho com o título -->
 	<div class="flex justify-between items-center p-2 font-bold text-xl text-accent">
 		<h1>Listagem de Pré Documentos de Entrada</h1>
+
+		<!-- Componente de filtros -->
+		<Filtrar {columns} on:applyFilters={handleFiltersApplied} />
 	</div>
 
 	<!-- Conteúdo da Tabela -->
@@ -62,15 +74,15 @@
 		<p>Carregando dados...</p>
 	{:else}
 		<div class="flex-1">
-			<Table 
-				{columns} 
-				pageData={preNotas} 
-				{currentPage} 
-				{hasMore} 
-				{sortBy} 
-				{sortOrder} 
-				on:sortChange={handleSortChange} 
-				on:pageChange={handlePageChange} 
+			<Table
+				{columns}
+				pageData={preNotas}
+				{currentPage}
+				{hasMore}
+				{sortBy}
+				{sortOrder}
+				on:sortChange={handleSortChange}
+				on:pageChange={handlePageChange}
 			/>
 		</div>
 	{/if}
