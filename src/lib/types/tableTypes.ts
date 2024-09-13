@@ -37,6 +37,7 @@ export interface borracharia {
 	Produto: string;
 	Saldo: string;
 	Emissao: string;
+	actions?: () => void;
 }
 
 export interface BorrachariaData {
