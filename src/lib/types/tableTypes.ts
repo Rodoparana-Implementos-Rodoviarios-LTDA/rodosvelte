@@ -7,6 +7,7 @@ export interface Column<T> {
 	component?: any;
 	props?: (row: T) => Record<string, any>;
 	isFilterable: boolean; // Agora isFilterable é sempre booleano
+	class?:string;
 }
 
 export interface TableData {

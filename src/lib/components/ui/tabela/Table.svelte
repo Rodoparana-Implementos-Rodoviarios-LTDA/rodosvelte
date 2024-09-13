@@ -105,7 +105,7 @@
 				<thead class="h-16">
 					<tr>
 						{#each columns as column}
-							<th class="">
+							<th class={column.class}>
 								<!-- Se o header for um componente, renderiza ele, caso contrário, renderiza o texto -->
 								{#if typeof column.header === 'function'}
 									<svelte:component this={column.header} {columns} />
@@ -128,9 +128,9 @@
 						</tr>
 					{:else}
 						{#each pageData as row}
-							<tr>
+							<tr class="hover ">
 								{#each columns as column}
-									<td class="relative max-w-56 text-start font-medium break-words">
+									<td class={`text-start text-base font-medium ${column.class}`}>
 										{#if column.component}
 											<svelte:component
 												this={column.component}
