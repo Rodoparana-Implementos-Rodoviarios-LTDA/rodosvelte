@@ -41,17 +41,25 @@
 
 <!-- Tabela de dados -->
 <div class="overflow-hidden z-1">
-	<div class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
-		<table class="table  table-pin-rows table-pin-cols z-0">
+	<div
+		class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md"
+	>
+		<table class="table table-pin-rows table-pin-cols z-0">
 			<thead class="h-16">
 				<tr>
 					{#each columns as column}
 						<th class="">
-							<SortableHeader
-								title={column.header}
-								isSorted={sortBy === String(column.accessorKey) ? sortOrder : false}
-								onClick={() => toggleSort(column.accessorKey)}
-							/>
+							<!-- Se o header for um componente, renderiza ele, caso contrário, renderiza o texto -->
+							{#if typeof column.header === 'function'}
+								<svelte:component this={column.header} {columns} />
+								<!-- Passa as colunas para o componente Filtrar -->
+							{:else}
+								<SortableHeader
+									title={column.header}
+									isSorted={sortBy === String(column.accessorKey) ? sortOrder : false}
+									onClick={() => toggleSort(column.accessorKey)}
+								/>
+							{/if}
 						</th>
 					{/each}
 				</tr>

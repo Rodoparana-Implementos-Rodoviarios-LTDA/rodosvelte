@@ -33,7 +33,7 @@
 			// Salva o token e o username no sessionStorage
 			sessionStorage.setItem('token', data.access_token);
 			sessionStorage.setItem('username', username);
-
+				
 			// Redireciona o usuário para a rota protegida
 			goto('/prenotas');
 		} catch (err) {

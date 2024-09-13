@@ -58,7 +58,7 @@
   <HoverCard.Root>
     <HoverCard.Trigger class="cursor-pointer">
       <span class={dueTextClass}>
-        {rawDateDue}
+        {rawDateInclusion}
       </span>
     </HoverCard.Trigger>
     

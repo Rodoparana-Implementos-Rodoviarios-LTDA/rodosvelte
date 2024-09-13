@@ -1,24 +1,27 @@
 // Função de fetch paginada genérica
 export const dataFetching = async <T>(
 	endpoint: string, // Endpoint dinâmico para a API
+	sortBy: string,
+	sortOrder: string,
 	page: number = 1, // Número da página atual
-	pageSize: number = 10 // Tamanho da página
+	pageSize: number = 10, // Tamanho da página
 ): Promise<{ data: T[]; hasMore: boolean }> => {
 	try {
 		const token = sessionStorage.getItem('token');
 		if (!token) {
 			throw new Error('Token não encontrado no sessionStorage');
 		}
+
 		// Configurações da requisição
 		const config = {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				'X-Page': '1',                    // Página fixa
-				'X-Page-Size': '15',              // Tamanho da página fixo
-        'X-Sort-By': 'Inclusao',          // Ordenação fixa
-        'X-Sort-Order': 'desc',           // Ordem descendente fixa
-				Authorization: `Bearer ${token}`  // Token no header
+				'X-Page': page.toString(), // Usa o número da página dinâmico
+				'X-Page-Size': pageSize.toString(), // Tamanho da página dinâmico
+				'X-Sort-By': sortBy, // Ordenação
+				'X-Sort-Order': sortOrder, // Ordem de classificação
+				Authorization: `Bearer ${token}` // Token no header
 			}
 		};
 
@@ -35,7 +38,7 @@ export const dataFetching = async <T>(
 		// Retorna os dados e verifica se há mais páginas
 		return {
 			data: result as T[], // Tipo genérico para os dados
-			hasMore: result.length === pageSize // Se há mais dados a serem carregados
+			hasMore: result.length === pageSize // Verifica se há mais páginas
 		};
 	} catch (error) {
 		console.error('Erro ao buscar os dados:', error);
