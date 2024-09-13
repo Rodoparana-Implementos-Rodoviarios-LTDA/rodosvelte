@@ -4,7 +4,7 @@ export const dataFetching = async <T>(
 	sortBy: string,
 	sortOrder: string,
 	page: number = 1, // Número da página atual
-	pageSize: number = 10, // Tamanho da página
+	pageSize: number = 15, // Tamanho da página
 	filters: Record<string, string> = {} // Filtros opcionais
 ): Promise<{ data: T[]; hasMore: boolean }> => {
 	try {

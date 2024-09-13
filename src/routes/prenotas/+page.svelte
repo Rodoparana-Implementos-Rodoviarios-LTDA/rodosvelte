@@ -9,7 +9,7 @@
 	// Estados de carregamento e paginação
 	let isLoading = true;
 	let currentPage = 1; // Controla a página atual
-	let pageSize = 10; // Tamanho da página (pode ser dinâmico)
+	let pageSize = 15; // Tamanho da página (pode ser dinâmico)
 	let preNotas: PreNota[] = [];
 	let hasMore = true;
 
@@ -34,21 +34,28 @@
 	}
 
 	// Função que escuta o evento de filtros aplicados e carrega a nova página com os filtros
-	function handleFiltersApplied(event) {
+	function handleFiltersApplied(event: CustomEvent<Record<string, string>>) {
 		filters = event.detail; // Atualiza os filtros recebidos do Filtrar.svelte
 		currentPage = 1; // Reseta para a primeira página quando os filtros são aplicados
 		loadPage(currentPage); // Recarrega os dados com os filtros aplicados
 	}
 
+	// Função para resetar os filtros
+	function handleFiltersReset(event: Event) {
+		filters = {}; // Reseta os filtros no componente pai
+		currentPage = 1; // Reseta para a primeira página
+		loadPage(currentPage); // Recarrega os dados sem filtros
+	}
+
 	// Função para mudança de ordenação
-	function handleSortChange(event) {
+	function handleSortChange(event: CustomEvent<{ sortBy: string; sortOrder: 'asc' | 'desc' }>) {
 		sortBy = event.detail.sortBy;
 		sortOrder = event.detail.sortOrder;
 		loadPage(); // Recarrega a página com a nova ordenação
 	}
 
 	// Função para mudança de página
-	function handlePageChange(event) {
+	function handlePageChange(event: CustomEvent<number>) {
 		currentPage = event.detail; // Atualiza a página atual
 		loadPage(currentPage); // Carrega os dados da nova página
 	}
@@ -66,7 +73,11 @@
 		<h1>Listagem de Pré Documentos de Entrada</h1>
 
 		<!-- Componente de filtros -->
-		<Filtrar {columns} on:applyFilters={handleFiltersApplied} />
+		<Filtrar
+			{columns}
+			on:applyFilters={handleFiltersApplied}
+			on:resetFilters={handleFiltersReset}
+		/>
 	</div>
 
 	<!-- Conteúdo da Tabela -->
