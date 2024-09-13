@@ -60,6 +60,13 @@
 		loadPage(currentPage); // Carrega os dados da nova página
 	}
 
+	// Função para capturar a mudança no tamanho da página
+	function handlePageSizeChange(event: CustomEvent<number>) {
+		pageSize = event.detail; // Atualiza o tamanho da página
+		currentPage = 1; // Reseta para a primeira página
+		loadPage(currentPage); // Recarrega os dados com o novo tamanho de página
+	}
+
 	// Carrega a primeira página quando o componente é montado
 	onMount(() => {
 		loadPage(currentPage);
@@ -92,8 +99,10 @@
 				{hasMore}
 				{sortBy}
 				{sortOrder}
+				pageSize={pageSize}
 				on:sortChange={handleSortChange}
 				on:pageChange={handlePageChange}
+				on:pageSizeChange={handlePageSizeChange}
 			/>
 		</div>
 	{/if}

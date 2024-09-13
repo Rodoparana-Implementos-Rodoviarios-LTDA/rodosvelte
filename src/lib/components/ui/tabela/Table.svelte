@@ -10,6 +10,7 @@
 	export let hasMore: boolean = true;
 	export let sortBy: string | undefined = undefined;
 	export let sortOrder: 'asc' | 'desc' | undefined = undefined;
+	export let pageSize: number = 15; // Número de itens por página (padrão)
 
 	const dispatch = createEventDispatcher();
 
@@ -37,13 +38,18 @@
 			dispatch('pageChange', currentPage + 1);
 		}
 	}
+
+	// Função para alterar o número de itens por página
+	function handlePageSizeChange(event: Event) {
+		const target = event.target as HTMLSelectElement;
+		const newPageSize = parseInt(target.value);
+		dispatch('pageSizeChange', newPageSize); // Emite o novo tamanho de página para o componente pai
+	}
 </script>
 
 <!-- Tabela de dados -->
 <div class="overflow-hidden z-1">
-	<div
-		class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md"
-	>
+	<div class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
 		<table class="table table-pin-rows table-pin-cols z-0">
 			<thead class="h-16">
 				<tr>
@@ -91,8 +97,23 @@
 			</tbody>
 		</table>
 	</div>
+
 	<!-- Controles de navegação -->
-	<div class="flex justify-end pt-2">
+	<div class="flex justify-between pt-2">
+		<!-- Controle para selecionar o número de itens por página -->
+		<div>
+			 <select class="select select-ghost w-full max-w-xs" on:change={handlePageSizeChange}>
+				<option disabled selected>Itens por Página</option>
+				<option value="5">5</option>
+				<option value="10">10</option>
+				<option value="15">15</option>
+				<option value="30">30</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+			</select>
+		</div>
+
+		<!-- Botões de navegação -->
 		<div class="join">
 			<button class="join-item btn" on:click={prevPage} disabled={currentPage === 1}>«</button>
 			<button class="join-item btn">{currentPage}</button>
