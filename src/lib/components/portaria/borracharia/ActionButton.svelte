@@ -11,11 +11,20 @@
     function closeDrawer() {
       isDrawerOpen = false;
     }
+
+    function handleAction() {
+    console.log(`Saldo máximo: ${saldoMaximo}`);
+    // Aqui você pode adicionar mais lógica para a ação do botão
+  }
   </script>
   
   <!-- Botão que abre o Drawer -->
   <button class="btn btn-primary" on:click={handleClick}>
     Abrir Drawer
+  </button>
+  
+  <button on:click={handleAction} class="btn btn-primary">
+    Ação (Saldo Máximo: {saldoMaximo})
   </button>
   
   <!-- Drawer -->
