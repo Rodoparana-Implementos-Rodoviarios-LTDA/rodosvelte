@@ -1,9 +1,9 @@
 import type { Column, PreNota } from '$lib/types/tableTypes';
-import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte';
+import UserAvatar from '$lib/components/ui/UserAvatar.svelte';
 import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import ActionDropdown from './ActionDropdown.svelte';
-import HoverText from '$lib/components/ui/tabela/HoverText.svelte';
+import HoverText from '$lib/components/ui/HoverText.svelte';
 
 
 export const columns: Column<PreNota>[] = [
