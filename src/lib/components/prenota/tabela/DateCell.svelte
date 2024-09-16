@@ -55,35 +55,40 @@
 
 <!-- Radix-Svelte HoverCard -->
 <div class="contents">
-  <HoverCard.Root>
-    <HoverCard.Trigger class="cursor-pointer">
+  <HoverCard.Root openDelay={30} closeDelay={30}>
+    <HoverCard.Trigger asChild>
+      <!-- Trigger que exibe a data de inclusão -->
       <span class={dueTextClass}>
         {rawDateInclusion}
       </span>
     </HoverCard.Trigger>
-    
+  
+    <!-- Conteúdo do HoverCard exibindo as informações adicionais -->
     <HoverCard.Portal>
-      <HoverCard.Content
-        side={contentSide}
-        sideOffset={contentSideOffset}
-        align={contentAlign}
-        arrowPadding={contentArrowPadding}
-        avoidCollisions={contentAvoidCollisions}
-        class="w-64 p-2 bg-base-300 shadow rounded"
+      <HoverCard.Content 
+        sideOffset={5}
+        align={"start"} 
+        class="w-64 p-4 bg-primary-content text-primary shadow rounded"
       >
-        <HoverCard.Arrow width={10} height={5} class="fill-white" />
-        <div class="flex flex-col gap-2 ">
-          <p class="flex justify-between">Inclusão: <span class={inclusionTextClass}>{rawDateInclusion}</span></p>
-          <p class="flex justify-between">Emissão: <span class="text-gray-600">{rawDateEmission}</span></p>
-          <p class="flex justify-between">Vencimento: <span class={dueTextClass}>{rawDateDue}</span></p>
+        <HoverCard.Arrow width={15} height={10} class="fill-primary-content" />
+        <!-- Conteúdo do hover com as informações de data -->
+        <div class="flex flex-col gap-2">
+          <p class="flex justify-between">
+            Inclusão: 
+            <span class={inclusionTextClass}>{rawDateInclusion}</span>
+          </p>
+          <p class="flex justify-between">
+            Emissão: 
+            <span class="text-gray-600">{rawDateEmission}</span>
+          </p>
+          <p class="flex justify-between">
+            Vencimento: 
+            <span class={dueTextClass}>{rawDateDue}</span>
+          </p>
         </div>
       </HoverCard.Content>
     </HoverCard.Portal>
   </HoverCard.Root>
+  
 </div>
 
-<style>
-  .contents {
-    display: inline-block;
-  }
-</style>

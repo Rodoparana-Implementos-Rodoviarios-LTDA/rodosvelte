@@ -16,7 +16,7 @@
 	});
 </script>
 
-<html lang="pt-br" class="h-screen w-screen max-w-screen max-h-screen">
+<html lang="pt-br" class="h-screen w-screen">
 	<header class=" z-10">
 		<!-- Exibe a navegação se a rota não for "/" (login) -->
 		<div class="">

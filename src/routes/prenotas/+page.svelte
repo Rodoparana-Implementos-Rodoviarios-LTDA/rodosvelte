@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { columns } from '../../lib/components/prenota/tabela/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
+	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
+	import { onMount } from 'svelte';
 
 	// Defina o endpoint no nível da página
 	export let endpoint: string = 'api/prenotas';
+
+	// Carrega as filiais no IndexedDB ao carregar a página
+	onMount(async () => {
+		await fetchAndSaveFiliais(); // Chama a função para buscar e salvar as filiais
+	});
 </script>
 
 <!-- Interface da Tabela -->

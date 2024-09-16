@@ -1,11 +1,11 @@
 import type { Column, PreNota } from '$lib/types/tableTypes';
 import UserAvatar from '$lib/components/ui/UserAvatar.svelte';
 
-
+import fililalHover from '$lib/components/ui/fililalHover.svelte';
 import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import TipoBadge from './TipoBadge.svelte';
-import ActionDropdown from './ActionDropdown.svelte';
+import ActionDropdown from '../revisao/ActionDropdown.svelte';
 import CurrencyFormatter from './CurrencyFormatter.svelte';
 
 export const columns: Column<PreNota>[] = [
@@ -28,9 +28,9 @@ export const columns: Column<PreNota>[] = [
 	{
 		accessorKey: 'Filial',
 		header: 'Filial',
-		cell: (row: PreNota) => row.Filial,
-		isFilterable: true,
-		class: 'w-10 text-center'
+		component: fililalHover,
+		props: (row: PreNota) => ({ numeroFilial: row.Filial }),
+		isFilterable: true
 	},
 	{
 		accessorKey: 'NF',
@@ -90,11 +90,18 @@ export const columns: Column<PreNota>[] = [
 		class: 'max-w-xs text-center'
 	},
 	{
-		accessorKey: 'actions',
-		header: 'Histórico',
-		component: ActionDropdown,
-		props: (row: PreNota) => ({ rec: row.Rec }),
-		isFilterable: false,
+		accessorKey: 'Rec',
+		header: 'Rec',
+		props: (row: PreNota) => ({ text: row.Rec }),
+		isFilterable: true,
 		class: 'max-w-xs text-center'
+	},
+	{
+		accessorKey: 'actions',
+		header: 'Sobre',
+		component: ActionDropdown,
+		props: (row: PreNota) => ({ rec: row.Rec, status: row.Status }), // Passa tanto o Rec quanto o Status
+		isFilterable: false,
+		class: 'w-36 text-center'
 	}
 ];
