@@ -1,8 +1,19 @@
 import type { borracharia, Column } from '$lib/types/tableTypes';
-import ActionButton from '$lib/components/portaria/borracharia/ActionButton.svelte'; // Componente de Ações
-import Filtrar from '$lib/components/prenota/tabela/Filtrar.svelte'; // Componente de Filtro
+import ActionButton from '$lib/components/portaria/borracharia/ActionButton.svelte';
+import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte' // Componente de Ações
+
+
 
 export const columns: Column<borracharia>[] = [
+  {
+    accessorKey: 'Vendedor',
+    header: 'Vendedor',
+    component: UserAvatar, // Usa o componente Avatar para exibir as iniciais
+    props: (row: borracharia) => ({
+      username: row.Vendedor // Passa o nome do vendedor como prop
+    }),
+    isFilterable: true // Permitir filtro nessa coluna
+  },
   {
     accessorKey: 'Filial',
     header: 'Filial',
@@ -22,12 +33,6 @@ export const columns: Column<borracharia>[] = [
     isFilterable: true // Permitir filtro nessa coluna
   },
   {
-    accessorKey: 'Vendedor',
-    header: 'Vendedor',
-    cell: (row: borracharia) => row.Vendedor,
-    isFilterable: true // Permitir filtro nessa coluna
-  },
-  {
     accessorKey: 'Produto',
     header: 'Produto',
     cell: (row: borracharia) => row.Produto,
@@ -42,16 +47,16 @@ export const columns: Column<borracharia>[] = [
   {
     accessorKey: 'Emissao',
     header: 'Emissão',
-    cell: (row: borracharia) => row.Emissao,
+    cell: (row: borracharia) => new Date(row.Emissao).toLocaleDateString('pt-BR'), // Formatação direta de data
     isFilterable: true // Permitir filtro nessa coluna
   },
   {
-    header: Filtrar, // Componente de Filtro
     accessorKey: 'actions',
-    component: ActionButton, // Componente que renderiza as ações
+    header: 'Ações', // Cabeçalho de ações
+    component: ActionButton, // Componente de ação
     props: (row: borracharia) => ({
-      saldoMaximo: row.Saldo // Passa o saldo para o componente ActionButton
+      saldoMaximo: row.Saldo // Passa o saldo para o ActionButton
     }),
-    isFilterable: false // Não aplicável para filtro
+    isFilterable: false // Não é aplicável para filtro
   }
 ];
