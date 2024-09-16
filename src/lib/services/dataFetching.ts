@@ -1,10 +1,10 @@
-// Função de fetch paginada genérica
 export const dataFetching = async <T>(
 	endpoint: string, // Endpoint dinâmico para a API
 	sortBy: string,
 	sortOrder: string,
 	page: number = 1, // Número da página atual
 	pageSize: number = 10, // Tamanho da página
+	filters: Record<string, any> = {} // Novo parâmetro: filtros opcionais
 ): Promise<{ data: T[]; hasMore: boolean }> => {
 	try {
 		const token = sessionStorage.getItem('token');
