@@ -25,7 +25,7 @@
 	<input id="my-drawer-4" type="checkbox" class="drawer-toggle" on:change={loadEventos} />
 	<div class="drawer-content">
 		<!-- Conteúdo da página aqui -->
-		<label for="my-drawer-4" class="drawer-button btn btn-neutral w-full">
+		<label for="my-drawer-4" class="drawer-button btn btn-outline btn-accent-content w-full">
 			<IconHistory class="inline-block h-5 w-5" /> Histórico
 		</label>
 	</div>
