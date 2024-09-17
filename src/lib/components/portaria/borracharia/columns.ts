@@ -1,9 +1,7 @@
 import type { borracharia, Column } from '$lib/types/tableTypes';
 import ActionButton from '$lib/components/portaria/borracharia/ActionButton.svelte';
-import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte' // Componente de Ações
-
-
-
+import UserAvatar from '$lib/components/ui/UserAvatar.svelte' // Componente de Ações
+  
 export const columns: Column<borracharia>[] = [
   {
     accessorKey: 'Vendedor',

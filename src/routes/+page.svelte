@@ -35,7 +35,7 @@
 			sessionStorage.setItem('username', username);
 
 			// Redireciona o usuário para a rota protegida
-			goto('/prenotas');
+			goto('/lancamento-notas');
 		} catch (err) {
 			// Verificação do tipo de erro para evitar erro de tipo 'unknown'
 			if (err instanceof Error) {
