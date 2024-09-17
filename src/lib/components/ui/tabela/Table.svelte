@@ -80,7 +80,9 @@
 	{#if isLoading}
 		<p>Carregando dados...</p>
 	{:else}
-		<div class="overflow-auto scroll-insvisible w-[90dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
+		<div
+			class="overflow-auto scroll-insvisible w-[90dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md"
+		>
 			<table class="table table-pin-rows table-pin-cols z-0">
 				<thead class="h-16">
 					<tr>

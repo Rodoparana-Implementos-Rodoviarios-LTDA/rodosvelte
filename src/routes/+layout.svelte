@@ -1,5 +1,5 @@
 <script lang="ts">
-	import 'tailwindcss/tailwind.css';
+	import '../globals.css';
 	import Nav from '$lib/components/theme/nav.svelte';
 	import ThemeChanger from '$lib/components/theme/changeTheme.svelte';
 	import { page } from '$app/stores'; // Para acessar a URL atual

@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import Logo from '$lib/components/theme/logo.svelte';
+	import { IconTruckReturn } from '@tabler/icons-svelte';
 
 	let username = '';
 	let password = '';
@@ -8,7 +8,7 @@
 
 	// Função de login
 	async function handleLogin() {
-		error = ''; // Reseta a mensagem de erro
+		error = '';
 
 		try {
 			const bodyData = {
@@ -33,7 +33,7 @@
 			// Salva o token e o username no sessionStorage
 			sessionStorage.setItem('token', data.access_token);
 			sessionStorage.setItem('username', username);
-				
+
 			// Redireciona o usuário para a rota protegida
 			goto('/prenotas');
 		} catch (err) {
@@ -45,65 +45,79 @@
 			}
 		}
 	}
-
-	// Função de logout para remover o token e redirecionar
-	function handleLogout() {
-		sessionStorage.removeItem('token');
-		sessionStorage.removeItem('username');
-		goto('/login'); // Redireciona para a página de login
-	}
 </script>
 
-<!-- Página de Login com Vídeo de Fundo -->
-<div class="">
-	<!-- Vídeo de Fundo -->
-	<video autoplay muted loop playsinline class="absolute inset-0 w-screen h-screen object-cover">
-		<source src="/background.mp4" type="video/mp4" />
-		Seu navegador não suporta vídeos em HTML5.
-	</video>
+<!-- Página de Login com Formulário e Vídeo -->
+<div class="bg-blue-900/40 flex justify-center items-center w-screen h-screen">
+	<div class="card lg:card-side h-[80vh] w-[80dvw] bg-base-100 shadow-xl grid grid-cols-2">
+		<!-- Vídeo no lado esquerdo -->
+		<div class="relative h-full bg-base-100 col-span-1 rounded-xl">
+			<video autoplay muted loop class="object-cover h-full w-full rounded">
+				<source src="/background.mp4" type="video/mp4" />
+				Seu navegador não suporta vídeos em HTML5.
+			</video>
+			<!-- Overlay para criar um efeito de escurecimento -->
+			<div class="absolute inset-0 bg-black opacity-40"></div>
+		</div>
 
-	<!-- Overlay para criar um efeito de blur e escurecimento sobre o vídeo -->
-	<div class="absolute inset-0 bg-black opacity-20"></div>
-
-	<!-- Card de Login -->
-	<div class="relative z-10 bg-base-200 p-8 rounded-box shadow-lg w-96 backdrop-blur-lg bg-opacity-40">
-		<Logo />
-		<!-- Exibe mensagem de erro -->
-		{#if error}
-			<div class="alert alert-error">
-				<span>{error}</span>
-			</div>
-		{/if}
-
-		<!-- Formulário de Login -->
-		<form on:submit|preventDefault={handleLogin} class="space-y-4">
-			<div class="form-control">
-				<label class="label" for="username">
-					<span class="label-text text-white">Usuário</span>
-				</label>
-				<input
-					id="username"
-					type="text"
-					class="input input-bordered w-full"
-					bind:value={username}
-					required
-				/>
+		<div class="flex flex-col justify-evenly items-center">
+			<div class="flex items-start justify-center">
+				<div class=" flex items-center justify-center">
+					<IconTruckReturn class="w-16 h-16 text-primary" />
+					<span class="text-5xl font-bold text-primary">RodoApp</span>
+				</div>
 			</div>
 
-			<div class="form-control">
-				<label class="label" for="password">
-					<span class="label-text text-white">Senha</span>
-				</label>
-				<input
-					id="password"
-					type="password"
-					class="input input-bordered w-full"
-					bind:value={password}
-					required
-				/>
+			<!-- Formulário de Login no lado direito -->
+			<div class="col-span-1 flex flex-col justify-center items-center space-y-10">
+				<div class="space-y-3">
+					<h1 class="text-6xl font-medium">Bem vindo de Volta!</h1>
+					<p class="text-2xl">Entre com suas credenciais para acessar o sistema.</p>
+				</div>
+				<form on:submit|preventDefault={handleLogin} class="space-y-4 w-full max-w-lg">
+					<div class="form-control w-full">
+						<label class="label" for="username">
+							<span class="label-text">Usuário do Protheus</span>
+						</label>
+						<input
+							id="username"
+							type="text"
+							class="input input-bordered w-full"
+							bind:value={username}
+							required
+						/>
+					</div>
+
+					<div class="form-control">
+						<label class="label" for="password">
+							<span class="label-text">Senha</span>
+						</label>
+						<input
+							id="password"
+							type="password"
+							class="input input-bordered w-full"
+							bind:value={password}
+							required
+						/>
+						{#if error}
+							<div class="alert alert-error mt-2">
+								<span>{error}</span>
+							</div>
+						{/if}
+					</div>
+
+					<button type="submit" class="btn btn-primary w-full"> Login </button>
+				</form>
 			</div>
 
-			<button type="submit" class="btn btn-primary w-full"> Login </button>
-		</form>
+			<div class="w-full flex justify-evenly items-baseline">
+				<button class="btn btn-outline btn-primary"
+					><a href="http://hesk.rodoparana.com.br/">SUPORTE</a></button
+				>
+				<button class="btn btn-outline btn-primary"
+					><a href="https://sites.google.com/site/baserodoparana/home">INTRANET</a></button
+				>
+			</div>
+		</div>
 	</div>
 </div>
