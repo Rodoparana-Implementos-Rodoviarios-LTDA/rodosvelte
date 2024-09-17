@@ -1,41 +1,42 @@
 <script lang="ts">
-  import { fly } from 'svelte/transition';
-  import { circOut } from 'svelte/easing';
   import { saldoStore } from '$lib/components/portaria/historico/saldoStore'; // Importa a store de saldo
-  import { IconCopyPlus } from '@tabler/icons-svelte';
+  import { fly } from 'svelte/transition'; // Transição fly
+  import { circOut } from 'svelte/easing'; // Easing para a transição
+  import { createEventDispatcher } from 'svelte'; // Dispatcher de eventos
+  import { onMount } from 'svelte';
+	import { IconCopyPlus } from '@tabler/icons-svelte';
 
-  // Recebe as informações adicionais já disponíveis no contexto da aplicação
   export let documento: string;
-  export let filial: string;
   export let produto: string;
-  export let item: string;
-  export let observacoes: string;
-  export let usuario: string = "usuarioAtual";
-  export let origem: string = "OrigemTeste";
+  let saldoMaximo = 0;
 
-  export let saldoMaximo: number; // Recebe o saldo máximo para o range de quantidade
-  let quantity = 0; // Quantidade inicial para o range
-  let responsible = "";
-  let plate = "";
-  let selectedOption = "Cliente";
+  let quantity = 0; // Quantidade inicial para o slider
+  let isChecked = false; // Estado do checkbox para confirmar a conferência
   let isLoading = false;
   let errorMessage = "";
-  let drawerVisible = false; // Controla a visibilidade do drawer
+  let drawerVisible = false;
 
-  // Função para lidar com a ação de confirmar e enviar a solicitação via POST
+  const dispatch = createEventDispatcher();
+
+  // Inscreve-se na store para receber o saldo da borracharia
+  onMount(() => {
+    saldoStore.subscribe(value => {
+      saldoMaximo = value;
+    });
+  });
+
+  // Função para lidar com a ação de confirmar e enviar os dados
   async function handleConfirm() {
+    if (!isChecked || quantity <= 0) {
+      errorMessage = "Por favor, confirme a conferência e insira uma quantidade válida.";
+      return;
+    }
+
     const body = {
-      filial,
       documento,
       produto,
-      item,
       quantidade: quantity,
-      retiradopor: selectedOption,
-      responsavel: responsible,
-      placa: plate,
-      observacoes,
-      usuario,
-      origem
+      usuario: "usuarioAtual",
     };
 
     try {
@@ -43,17 +44,14 @@
       const response = await fetch('http://172.16.99.174:8400/rest/MovPortaria/IncluirItem', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         throw new Error('Erro ao enviar a solicitação.');
       }
-
-      // Atualiza o saldo na store após o envio
-      saldoStore.set(saldoMaximo - quantity);
 
       console.log('Solicitação enviada com sucesso');
       errorMessage = ''; // Limpa a mensagem de erro
@@ -66,7 +64,7 @@
     }
   }
 
-  // Função para fechar o Drawer ao clicar fora
+  // Função para fechar o drawer ao clicar fora
   function closeDrawer(event: Event) {
     const target = event.target as HTMLElement;
     if (!target.closest('.drawer-content')) {
@@ -88,10 +86,14 @@
   <!-- Conteúdo do Drawer com animação fly -->
   <div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
     <div class="w-full h-screen bg-base-100 text-info p-8">
-      <h2 class="text-lg font-bold mb-4">Seleção de Pneus</h2>
-      <p class="mb-4">Saldo disponível: {saldoMaximo}</p>
+      <h2 class="text-lg font-bold mb-4">Conferência de Produto</h2>
 
-      <!-- Range Slider de quantidade de pneus -->
+      <!-- Informações do Documento -->
+      <p><strong>Documento:</strong> {documento}</p>
+      <p><strong>Produto:</strong> {produto}</p>
+      <p><strong>Saldo disponível:</strong> {saldoMaximo}</p>
+
+      <!-- Range Slider para quantidade -->
       <div class="mb-4">
         <input
           type="range"
@@ -103,46 +105,12 @@
         <p>Quantidade selecionada: {quantity}</p>
       </div>
 
-      <!-- Radio Button para selecionar entre Cliente e Motorista -->
-      <div class="mb-4 flex space-x-4">
-        <label class="flex items-center">
-          <input 
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Cliente"
-            bind:group={selectedOption}
-            checked
-          />
-          <span class="ml-2">Cliente</span>
+      <!-- Checkbox para confirmar a conferência -->
+      <div class="form-control mb-6">
+        <label class="cursor-pointer label">
+          <span class="label-text">Confirmar conferência</span>
+          <input type="checkbox" class="checkbox checkbox-success" bind:checked={isChecked} />
         </label>
-
-        <label class="flex items-center">
-          <input
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Motorista"
-            bind:group={selectedOption}
-          />
-          <span class="ml-2">Motorista</span>
-        </label>
-      </div>
-
-      <!-- Inputs para o nome do responsável e a placa -->
-      <div class="mb-4 space-y-2">
-        <input
-          type="text"
-          placeholder="Nome do responsável"
-          bind:value={responsible}
-          class="input input-bordered w-full"
-        />
-        <input
-          type="text"
-          placeholder="Placa do carro"
-          bind:value={plate}
-          class="input input-bordered w-full"
-        />
       </div>
 
       <!-- Botões de Ação -->
@@ -159,6 +127,7 @@
         </button>
       </div>
 
+      <!-- Mensagem de erro -->
       {#if errorMessage}
         <p class="text-error mt-4">{errorMessage}</p>
       {/if}

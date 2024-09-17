@@ -4,6 +4,7 @@
 	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetch para os dados
 	import { columns } from '$lib/components/portaria/borracharia/columns'; // Importa as colunas
 	import type { borracharia } from '$lib/types/tableTypes';
+	
 
 	// Estados de carregamento e paginação
 	let isLoading = true;
@@ -72,7 +73,7 @@
 		<div class="flex-1">
 			<Table 
 				{columns} 
-				pageData={filteredBorracharia} 
+				pageData={filteredBorracharia}
 				{currentPage} 
 				{hasMore} 
 				{sortBy} 
