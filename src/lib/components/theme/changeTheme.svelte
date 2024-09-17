@@ -3,7 +3,7 @@
 	import { IconBrightnessHalf } from '@tabler/icons-svelte';
 	import { lightThemes, darkThemes } from './themes';
 
-	let selectedTheme: string = 'light'; // Tema padrão
+	let selectedTheme: string = 'night'; // Tema padrão
 	let isLightMode: boolean = true; // Controla se está no modo claro ou escuro
 
 	// Função para alterar o tema e salvar no localStorage

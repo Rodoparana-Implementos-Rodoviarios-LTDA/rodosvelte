@@ -1,21 +1,20 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import SortableHeader from './SortableHeader.svelte';
-	import Filtrar from './Filtrar.svelte'; // Importa o componente de filtros
 	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetch para os dados
 	import type { Column } from '$lib/types/tableTypes';
 
 	// Props recebidas
 	export let columns: Column<any>[] = [];
 	export let endpoint: string;
+	export let filters: Record<string, string> = {}; // Recebe os filtros da página
+	export let sortBy: string = 'Inclusao'; // Coluna para ordenação
+	export let sortOrder: 'asc' | 'desc' = 'desc'; // Ordem de classificação
 	export let pageSize: number = 15; // Tamanho da página padrão
 
 	let pageData: any[] = [];
 	let currentPage: number = 1;
 	let hasMore: boolean = true;
-	let sortBy: string | undefined = 'Inclusao';
-	let sortOrder: 'asc' | 'desc' = 'desc';
-	let filters: Record<string, string> = {};
 	let isLoading = true;
 
 	const dispatch = createEventDispatcher();
@@ -24,7 +23,8 @@
 	async function loadPage(page: number = 1) {
 		isLoading = true;
 		try {
-			const result = await dataFetching(endpoint, sortBy!, sortOrder!, page, pageSize, filters);
+			// Faz a requisição de dados com filtros, ordenação e paginação
+			const result = await dataFetching(endpoint, sortBy, sortOrder, page, pageSize, filters);
 			pageData = result.data;
 			hasMore = result.hasMore;
 		} catch (error) {
@@ -69,20 +69,6 @@
 		loadPage(currentPage);
 	}
 
-	// Aplicar filtros
-	function applyFilters(event: CustomEvent<Record<string, string>>) {
-		filters = event.detail;
-		currentPage = 1;
-		loadPage(currentPage);
-	}
-
-	// Resetar filtros
-	function resetFilters() {
-		filters = {};
-		currentPage = 1;
-		loadPage(currentPage);
-	}
-
 	// Carrega a primeira página ao montar o componente
 	onMount(() => {
 		loadPage();
@@ -94,13 +80,7 @@
 	{#if isLoading}
 		<p>Carregando dados...</p>
 	{:else}
-		<!-- Adiciona o componente de filtro -->
-		<div class="flex justify-end pb-5">
-			<Filtrar {columns} on:applyFilters={applyFilters} on:resetFilters={resetFilters} />
-		</div>
-		<div
-			class="overflow-auto scroll-insvisible w-[95dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md"
-		>
+		<div class="overflow-auto scroll-insvisible w-[90dvw] h-[70dvh] 2xl:h-[75dvh] border border-primary rounded-btn shadow-md">
 			<table class="table table-pin-rows table-pin-cols z-0">
 				<thead class="h-16">
 					<tr>
@@ -128,7 +108,7 @@
 						</tr>
 					{:else}
 						{#each pageData as row}
-							<tr class="hover ">
+							<tr class="hover">
 								{#each columns as column}
 									<td class={`text-start text-base font-medium ${column.class}`}>
 										{#if column.component}

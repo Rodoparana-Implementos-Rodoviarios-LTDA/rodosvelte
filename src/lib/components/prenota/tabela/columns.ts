@@ -5,7 +5,7 @@ import fililalHover from '$lib/components/ui/fililalHover.svelte';
 import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import TipoBadge from './TipoBadge.svelte';
-import ActionDropdown from '../revisao/ActionDropdown.svelte';
+import ActionButton from '../revisao/ActionButton.svelte';
 import CurrencyFormatter from './CurrencyFormatter.svelte';
 
 export const columns: Column<PreNota>[] = [
@@ -23,28 +23,29 @@ export const columns: Column<PreNota>[] = [
 		component: UserAvatar, // Componente que exibe o avatar do usuário
 		props: (row: PreNota) => ({ username: row.Usuario }), // Passa o nome de usuário para o componente
 		isFilterable: true, // Coluna filtrável
-		class: 'w-10 text-center'
+		class: 'w-10 text-center '
 	},
 	{
 		accessorKey: 'Filial',
 		header: 'Filial',
 		component: fililalHover,
 		props: (row: PreNota) => ({ numeroFilial: row.Filial }),
-		isFilterable: true
+		isFilterable: true,
+		class: 'w-36 truncate text-center'
 	},
 	{
 		accessorKey: 'NF',
 		header: 'Nota Fiscal',
 		cell: (row: PreNota) => row.NF,
 		isFilterable: true,
-		class: 'w-36 text-center'
+		class: 'w-56 text-center'
 	},
 	{
 		accessorKey: 'Fornecedor',
 		header: 'Fornecedor',
 		props: (row: PreNota) => ({ text: row.Fornecedor }),
 		isFilterable: true,
-		class: 'max-w-sm text-center'
+		class: 'max-w-sm text-center truncate'
 	},
 	{
 		accessorKey: 'Tipo',
@@ -87,21 +88,16 @@ export const columns: Column<PreNota>[] = [
 		header: 'Observações',
 		props: (row: PreNota) => ({ text: row.Obs }),
 		isFilterable: true,
-		class: 'max-w-xs text-center'
-	},
-	{
-		accessorKey: 'Rec',
-		header: 'Rec',
-		props: (row: PreNota) => ({ text: row.Rec }),
-		isFilterable: true,
-		class: 'max-w-xs text-center'
+		class: 'max-w-xs text-center truncate'
 	},
 	{
 		accessorKey: 'actions',
-		header: 'Sobre',
-		component: ActionDropdown,
-		props: (row: PreNota) => ({ rec: row.Rec, status: row.Status }), // Passa tanto o Rec quanto o Status
-		isFilterable: false,
-		class: 'w-36 text-center'
+		header: 'Sobre', // Cabeçalho de ações
+		component: ActionButton, // Componente de ação
+		props: (row: PreNota) => ({
+			rec: row.Rec, // Passa o saldo para o ActionButton
+			status: row.Status
+		}),
+		isFilterable: false // Não é aplicável para filtro
 	}
 ];
