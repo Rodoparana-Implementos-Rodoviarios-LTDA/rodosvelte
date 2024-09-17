@@ -1,87 +1,100 @@
 import type { Column, PreNota } from '$lib/types/tableTypes';
-import UserAvatar from '$lib/components/ui/tabela/UserAvatar.svelte';
+import UserAvatar from '$lib/components/ui/UserAvatar.svelte';
+
+
 import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
+import TipoBadge from './TipoBadge.svelte';
 import ActionDropdown from './ActionDropdown.svelte';
-import HoverText from '$lib/components/ui/tabela/HoverText.svelte';
-import Filtrar from './Filtrar.svelte';
+import CurrencyFormatter from './CurrencyFormatter.svelte';
 
 export const columns: Column<PreNota>[] = [
-  {
-    accessorKey: 'Usuario',
-    header: 'Usuário',
-    component: UserAvatar,
-    props: (row: PreNota) => ({ username: row.Usuario }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Filial',
-    header: 'Filial',
-    cell: (row: PreNota) => row.Filial,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'NF',
-    header: 'Nota Fiscal',
-    cell: (row: PreNota) => row.NF,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Fornecedor',
-    header: 'Fornecedor',
-    cell: (row: PreNota) => row.Fornecedor,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Inclusao',
-    header: 'Inclusão',
-    component: DateCell,
-    props: (row: PreNota) => ({
-      rawDateInclusion: row.Inclusao,
-      rawDateEmission: row.Emissao,
-      rawDateDue: row.Vencimento
-    }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Valor',
-    header: 'Valor',
-    cell: (row: PreNota) => row.Valor,
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Tipo',
-    header: 'Tipo',
-    component: StatusIcon,
-    props: (row: PreNota) => ({ type: 'Tipo', value: row.Tipo }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Status',
-    header: 'Status',
-    component: StatusIcon,
-    props: (row: PreNota) => ({ type: 'Status', value: row.Status }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Prioridade',
-    header: 'Prioridade',
-    component: StatusIcon,
-    props: (row: PreNota) => ({ type: 'Prioridade', value: row.Prioridade }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'Obs',
-    header: 'Observações',
-    component: HoverText,
-    props: (row: PreNota) => ({ text: row.Obs }),
-    isFilterable: true  // Indica que esta coluna pode ser filtrada
-  },
-  {
-    accessorKey: 'actions',
-    header: Filtrar,  // Passa o componente Filtrar no lugar do cabeçalho
-    component: ActionDropdown,
-    props: (row: PreNota) => ({ rec: row.Rec }),
-    isFilterable: false  // Não é filtrável, já que é um campo de ações
-  }
+	{
+		accessorKey: 'Status',
+		header: 'Status',
+		component: StatusIcon,
+		props: (row: PreNota) => ({ type: 'Status', value: row.Status }),
+		isFilterable: true,
+		class: 'w-10 text-center'
+	},
+	{
+		accessorKey: 'Usuario',
+		header: 'Usuário',
+		component: UserAvatar, // Componente que exibe o avatar do usuário
+		props: (row: PreNota) => ({ username: row.Usuario }), // Passa o nome de usuário para o componente
+		isFilterable: true, // Coluna filtrável
+		class: 'w-10 text-center'
+	},
+	{
+		accessorKey: 'Filial',
+		header: 'Filial',
+		cell: (row: PreNota) => row.Filial,
+		isFilterable: true,
+		class: 'w-10 text-center'
+	},
+	{
+		accessorKey: 'NF',
+		header: 'Nota Fiscal',
+		cell: (row: PreNota) => row.NF,
+		isFilterable: true,
+		class: 'w-36 text-center'
+	},
+	{
+		accessorKey: 'Fornecedor',
+		header: 'Fornecedor',
+		props: (row: PreNota) => ({ text: row.Fornecedor }),
+		isFilterable: true,
+		class: 'max-w-sm text-center'
+	},
+	{
+		accessorKey: 'Tipo',
+		header: 'Tipo',
+		component: TipoBadge,
+		props: (row: PreNota) => ({ tipo: row.Tipo }),
+		isFilterable: true,
+		class: 'w-56 text-center'
+	},
+	{
+		accessorKey: 'Inclusao',
+		header: 'Inclusão',
+		component: DateCell,
+		props: (row: PreNota) => ({
+			rawDateInclusion: row.Inclusao,
+			rawDateEmission: row.Emissao,
+			rawDateDue: row.Vencimento
+		}),
+		isFilterable: true,
+		class: 'w-36 text-center'
+	},
+	{
+		accessorKey: 'Valor',
+		header: 'Valor',
+		component: CurrencyFormatter,
+		props: (row: PreNota) => ({ value: parseFloat(row.Valor) }), // Passa o valor como número para o componente
+		isFilterable: true,
+		class: 'w-36 text-center'
+	},
+	{
+		accessorKey: 'Prioridade',
+		header: 'Prioridade',
+		component: StatusIcon,
+		props: (row: PreNota) => ({ type: 'Prioridade', value: row.Prioridade }),
+		isFilterable: true,
+		class: 'w-36 text-center'
+	},
+	{
+		accessorKey: 'Obs',
+		header: 'Observações',
+		props: (row: PreNota) => ({ text: row.Obs }),
+		isFilterable: true,
+		class: 'max-w-xs text-center'
+	},
+	{
+		accessorKey: 'actions',
+		header: 'Histórico',
+		component: ActionDropdown,
+		props: (row: PreNota) => ({ rec: row.Rec }),
+		isFilterable: false,
+		class: 'max-w-xs text-center'
+	}
 ];

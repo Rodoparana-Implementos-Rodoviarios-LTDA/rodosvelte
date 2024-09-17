@@ -1,5 +1,6 @@
 // src/lib/types/tableTypes.ts
 
+<<<<<<< HEAD
 // Coluna genérica usada em várias tabelas
 export interface Column<T> {
 	header: string; // O rótulo da coluna (cabeçalho)
@@ -8,6 +9,16 @@ export interface Column<T> {
 	component?: any; // Componente opcional para renderização de células dinâmicas
 	props?: (row: T) => Record<string, any>; // Propriedades opcionais passadas para o componente
 	isFilterable?: boolean; // Indica se a coluna pode ser filtrada
+=======
+export interface Column<T> {
+	header: string;
+	accessorKey: keyof T;
+	cell?: (row: T) => any;
+	component?: any;
+	props?: (row: T) => Record<string, any>;
+	isFilterable: boolean; // Agora isFilterable é sempre booleano
+	class?:string;
+>>>>>>> fe242afe9d703777fb5b91b9ff3a57e2868c792b
 }
 
 // Interface genérica para dados da tabela
@@ -59,5 +70,24 @@ export interface HistoricoData {
 	Saldo: number;
 	actions?: () => void; // Função de ação personalizada
 }
+<<<<<<< HEAD
 // Coluna genérica usada para a tabela
 
+=======
+
+export interface PreNotaTabela {
+	'X-Filter-Filial': string;
+	'X-Filter-NF': string;
+	'X-Filter-Status': string;
+	'X-Filter-Fornecedor': string;
+	'X-Filter-Emissao': string;
+	'X-Filter-Inclusao': string;
+	'X-Filter-Vencimento': string;
+	'X-Filter-Valor': string;
+	'X-Filter-Tipo': string;
+	'X-Filter-Prioridade': string;
+	'X-Filter-Usuario': string;
+	'X-Filter-Obs': string;
+	'X-Filter-Rec': string;
+}
+>>>>>>> fe242afe9d703777fb5b91b9ff3a57e2868c792b
