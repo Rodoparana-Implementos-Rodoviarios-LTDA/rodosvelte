@@ -1,18 +1,33 @@
 // src/lib/types/tableTypes.ts
-// src/lib/types/tableTypes.ts
-// src/lib/types/tableTypes.ts
+
+// Coluna genérica usada em várias tabelas
 export interface Column<T> {
 	header: string; // O rótulo da coluna (cabeçalho)
 	accessorKey: keyof T; // Chave usada para acessar o dado no objeto T
 	cell?: (row: T) => any; // Função opcional para customizar a célula
 	component?: any; // Componente opcional para renderização de células dinâmicas
 	props?: (row: T) => Record<string, any>; // Propriedades opcionais passadas para o componente
-	isFilterable?: boolean;
+	isFilterable?: boolean; // Indica se a coluna pode ser filtrada
 }
 
+// Interface genérica para dados da tabela
 export interface TableData {
 	[key: string]: any; // Dados da tabela com chave genérica
 }
+
+// Interface original de borracharia
+export interface borracharia {
+	Filial: string;
+	NF: string;
+	Cliente: string;
+	Vendedor: string;
+	Produto: string;
+	Saldo: string;
+	Emissao: string;
+	actions?: () => void; // Ações como função opcional
+}
+
+// Interface original de PreNota
 export interface PreNota {
 	Filial: string;
 	NF: string;
@@ -30,26 +45,19 @@ export interface PreNota {
 	actions?: () => void; // Ações como função opcional
 }
 
-export interface borracharia {
-	Filial: string;
-	NF: string;
-	Cliente: string;
-	Vendedor: string;
-	Produto: string;
-	Saldo: string;
-	Emissao: string;
-	actions?: () => void;
-}
 
-export interface BorrachariaData {
+export interface HistoricoData {
 	Filial: string;
 	NF: string;
-	Vendedor: string;
 	Cliente: string;
 	Produto: string;
-	Saldo: number;
-	Emissao: string;
+	TipoMov: string;
+	DataHora: string;
 	Responsavel: string;
 	Placa: string;
 	Observacao: string;
+	Saldo: number;
+	actions?: () => void; // Função de ação personalizada
 }
+// Coluna genérica usada para a tabela
+
