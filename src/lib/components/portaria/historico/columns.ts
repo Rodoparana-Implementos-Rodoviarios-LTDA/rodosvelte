@@ -1,54 +1,62 @@
-import type { Column } from '$lib/types/tableTypes';
+import type { HistoricoData, Column } from '$lib/types/tableTypes';
+import ConfButton from '$lib/components/portaria/historico/ConfButton.svelte'
 
-export const columnsHistorico: Column<any>[] = [
+export const columns: Column<HistoricoData>[] = [
   {
     accessorKey: 'Filial',
     header: 'Filial',
-    cell: (row: any) => row.Filial || 'N/A', // Exibe 'N/A' se não houver valor
+    cell: (row: HistoricoData) => row.Filial,
   },
   {
     accessorKey: 'NF',
     header: 'Nota Fiscal',
-    cell: (row: any) => row.NF || 'N/A', // Exibe 'N/A' se não houver valor
+    cell: (row: HistoricoData) => row.NF,
   },
   {
     accessorKey: 'Cliente',
     header: 'Cliente',
-    cell: (row: any) => row.Cliente || 'N/A',
+    cell: (row: HistoricoData) => row.Cliente,
   },
   {
     accessorKey: 'Produto',
     header: 'Produto',
-    cell: (row: any) => row.Produto || 'N/A',
-  },
-  {
-    accessorKey: 'TipoMov',
-    header: 'Tipo de Movimento',
-    cell: (row: any) => row.TipoMov === 'C' ? 'Crédito' : 'Débito', // Exemplo de conversão para crédito/débito
+    cell: (row: HistoricoData) => row.Produto,
   },
   {
     accessorKey: 'DataHora',
     header: 'Data/Hora',
-    cell: (row: any) => new Date(row.DataHora).toLocaleString('pt-BR'), // Formata data/hora
+    cell: (row: HistoricoData) => row.DataHora,
   },
   {
     accessorKey: 'Responsavel',
     header: 'Responsável',
-    cell: (row: any) => row.Responsavel || 'N/A',
+    cell: (row: HistoricoData) => row.Responsavel,
   },
   {
     accessorKey: 'Placa',
     header: 'Placa',
-    cell: (row: any) => row.Placa || 'N/A',
+    cell: (row: HistoricoData) => row.Placa,
   },
   {
     accessorKey: 'Observacao',
     header: 'Observação',
-    cell: (row: any) => row.Observacao || 'Sem observações',
+    cell: (row: HistoricoData) => row.Observacao || 'Sem Observação',
   },
   {
     accessorKey: 'Saldo',
     header: 'Saldo',
-    cell: (row: any) => row.Saldo.toFixed(2), // Formata saldo com 2 casas decimais
+    cell: (row: HistoricoData) => row.Saldo.toFixed(2),
+  },
+  {
+    accessorKey: 'actions',
+    header: 'Ações',
+    component: ConfButton, // Usa o componente ConfButton
+    props: (row: HistoricoData) => ({
+      documento: row.NF,  // Passa o NF (nota fiscal) para o componente ConfButton
+      produto: row.Produto,  // Passa o Produto para o componente ConfButton
+      saldoMaximo: row.Saldo,  // Passa o saldo para o componente ConfButton
+      responsavel: row.Responsavel, // Passa o responsável
+    }),
+    isFilterable: false, // Ações não são filtráveis
   },
 ];

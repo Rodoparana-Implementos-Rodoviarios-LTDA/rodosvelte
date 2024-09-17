@@ -8,10 +8,8 @@ export const columns: Column<borracharia>[] = [
   {
     accessorKey: 'Vendedor',
     header: 'Vendedor',
-    component: UserAvatar, // Usa o componente Avatar para exibir as iniciais
-    props: (row: borracharia) => ({
-      username: row.Vendedor // Passa o nome do vendedor como prop
-    }),
+    component: UserAvatar, // Usa o componente UserAvatar para exibir o vendedor
+    props: (row: borracharia) => ({ username: row.Vendedor }), // Passa o nome de usuário do vendedor para o componente
     isFilterable: true // Permitir filtro nessa coluna
   },
   {
