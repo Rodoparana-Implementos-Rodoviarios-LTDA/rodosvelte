@@ -1,20 +1,20 @@
 <script lang="ts">
-  import { ChevronsUp, ChevronsDown, Selector } from 'tabler-icons-svelte';
+  import { IconChevronsUp, IconChevronsDown, IconSelector } from '@tabler/icons-svelte';
 
   export let title: string;
   export let isSorted: 'asc' | 'desc' | false | undefined = false;
   export let onClick: () => void;
 
-  let IconComponent = Selector;
+  let IconComponent = IconSelector;
 
   // Altera o ícone conforme a ordenação
   $: {
     if (isSorted === 'asc') {
-      IconComponent = ChevronsUp;
+      IconComponent = IconChevronsUp;
     } else if (isSorted === 'desc') {
-      IconComponent = ChevronsDown;
+      IconComponent = IconChevronsDown;
     } else {
-      IconComponent = Selector;
+      IconComponent = IconSelector;
     }
   }
 </script>

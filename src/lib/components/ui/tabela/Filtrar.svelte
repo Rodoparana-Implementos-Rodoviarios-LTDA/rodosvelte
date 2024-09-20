@@ -36,12 +36,11 @@
 	}
 </script>
 
+<!-- Botão que abre o drawer -->
+<button class="tooltip tooltip-info tooltip-bottom btn hover:text-primary" data-tip="Filtrar dados">
+	<IconFilter class="h-6 w-6" />
+</button>
 <div class="flex justify-center items-center">
-	<!-- Botão que abre o drawer -->
-	<label for="filter-drawer" class="cursor-pointer flex items-center btn btn-outline w-full">
-		<IconFilter class="h-6 w-6" />
-	</label>
-
 	<!-- Drawer da DaisyUI -->
 	<div class="drawer drawer-end">
 		<input id="filter-drawer" type="checkbox" class="drawer-toggle" />

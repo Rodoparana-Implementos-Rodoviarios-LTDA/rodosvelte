@@ -1,21 +1,21 @@
 <script lang="ts">
 	import {
-		InfoCircle,
-		Phone,
-		Logout,
-		Dashboard,
-		List,
-		Plus,
-		Upload,
-		ShieldCheck,
-		Category
-	} from 'tabler-icons-svelte';
+		IconInfoCircle,
+		IconPhone,
+		IconLogout,
+		IconDashboard,
+		IconList,
+		IconPlus,
+		IconUpload,
+		IconShieldCheck,
+		IconCategory
+	} from '@tabler/icons-svelte';
 	import { goto } from '$app/navigation';
 	import { deleteData } from '$lib/services/idb';
 	import { IconTruckReturn } from '@tabler/icons-svelte';
 	interface MenuItem {
 		name: string;
-		icon: typeof Dashboard | typeof Phone;
+		icon: typeof IconDashboard | typeof IconPhone;
 		link: string;
 		external?: boolean;
 	}
@@ -29,25 +29,30 @@
 		{
 			title: 'Lançamento de Notas',
 			items: [
-				{ name: 'Lista de Pre Notas', icon: List, link: '/lancamento-notas/' },
-				{ name: 'Incluir Manualmente', icon: Plus, link: '/lancamento-notas/incluir' },
-				{ name: 'Incluir XML', icon: Upload, link: '/lancamento-notas/xml' }
+				{ name: 'Lista de Pre Notas', icon: IconList, link: '/lancamento-notas/' },
+				{ name: 'Incluir Manualmente', icon: IconPlus, link: '/lancamento-notas/incluir' },
+				{ name: 'Incluir XML', icon: IconUpload, link: '/lancamento-notas/xml' }
 			]
 		},
 		{
 			title: 'Controle de Itens',
 			items: [
-				{ name: 'Borracharia', icon: Dashboard, link: '/controle-itens' },
-				{ name: 'Conferência', icon: ShieldCheck, link: '/controle-itens/conferencia' }
+				{ name: 'Borracharia', icon: IconDashboard, link: '/controle-itens' },
+				{ name: 'Conferência', icon: IconShieldCheck, link: '/controle-itens/conferencia' }
 			]
 		},
 		{
 			title: 'Suporte e Intranet',
 			items: [
-				{ name: 'Suporte', icon: Phone, link: 'https://hesk.rodoparana.com.br', external: true },
+				{
+					name: 'Suporte',
+					icon: IconPhone,
+					link: 'https://hesk.rodoparana.com.br',
+					external: true
+				},
 				{
 					name: 'Intranet',
-					icon: InfoCircle,
+					icon: IconInfoCircle,
 					link: 'https://sites.google.com/site/baserodoparana/home?authuser=1',
 					external: true
 				}
@@ -94,7 +99,7 @@
 	<!-- Conteúdo Principal -->
 	<div class="drawer-content flex flex-col">
 		<label for="my-drawer" class="btn btn-square btn-ghost fixed top-5 left-5 z-10">
-			<Category class="h-6 w-6" />
+			<IconCategory class="h-6 w-6" />
 		</label>
 		<slot />
 	</div>
@@ -148,7 +153,7 @@
 						class="logout flex items-center justify-center gap-3 absolute opacity-0 transition-opacity duration-400 ease-in-out group-hover:opacity-100"
 					>
 						Logout
-						<Logout />
+						<IconLogout />
 					</span>
 				</button>
 			</div>

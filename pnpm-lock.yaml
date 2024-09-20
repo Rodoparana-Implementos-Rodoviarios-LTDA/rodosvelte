@@ -23,9 +23,6 @@ importers:
       radix-svelte:
         specifier: ^0.9.0
         version: 0.9.0(svelte@4.2.19)
-      tabler-icons-svelte:
-        specifier: ^1.10.0
-        version: 1.10.0(svelte@4.2.19)
     devDependencies:
       '@playwright/test':
         specifier: ^1.28.1
@@ -1433,12 +1430,6 @@ packages:
   svelte@4.2.19:
     resolution: {integrity: sha512-IY1rnGr6izd10B0A8LqsBfmlT5OILVuZ7XsI0vdGPEvuonFV7NYEUK4dAkm9Zg2q0Um92kYjTpS1CAP3Nh/KWw==}
     engines: {node: '>=16'}
-
-  tabler-icons-svelte@1.10.0:
-    resolution: {integrity: sha512-BERFRwLW+nLnEXrC1yc3TCwM9LxlMqixnQiMIF/u9XESbYXUCi6udjwvSGmwLepAD0DI9OdXBrZvfPBan7Dzcg==}
-    deprecated: Package no longer supported. Switch to @tabler/icons-svelte.
-    peerDependencies:
-      svelte: '>=3.31.0 <=4'
 
   tailwindcss@3.4.10:
     resolution: {integrity: sha512-KWZkVPm7yJRhdu4SRSl9d4AK2wM3a50UsvgHZO7xY77NQr2V+fIrEuoDGQcbvswWvFGbS2f6e+jC/6WJm1Dl0w==}
@@ -2877,10 +2868,6 @@ snapshots:
       locate-character: 3.0.0
       magic-string: 0.30.11
       periscopic: 3.1.0
-
-  tabler-icons-svelte@1.10.0(svelte@4.2.19):
-    dependencies:
-      svelte: 4.2.19
 
   tailwindcss@3.4.10:
     dependencies:
