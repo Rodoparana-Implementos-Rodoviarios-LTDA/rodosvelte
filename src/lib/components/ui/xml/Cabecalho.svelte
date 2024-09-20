@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Combobox from '$lib/components/ui/Combobox.svelte';
-	import { getData } from '$lib/services/idb'; // Importa a função getData do idb
 	import { fetchAndLoadData } from '$lib/services/generalFetch'; // Importa a função de fetch
 	import { fetchDetalhesXML } from '$lib/services/conexaoNFE'; // Importa a função de conexão com a API
 	import {
@@ -13,85 +12,52 @@
 		IconDeviceFloppy,
 		IconPencilUp
 	} from '@tabler/icons-svelte';
-	
-	import type { Condicao } from '$lib/../app'; // Importa a interface Condicao
-	
-	// Interface para os detalhes do XML
-	interface DetalhesXML {
-		numero: string;
-		serie: string;
-		dataEmissao: string;
-		valorTotalDaNota: string;
-		nomeEmitente: string;
-		cnpjEmitente: string;
-		ufEmitente: string;
-		nomeDestinatario: string;
-		cnpjDestinatario: string;
-		ufDestinatario: string;
-		informacoesAdicionais: string;
-		itens: Item[];
-	}
-	
-	interface Item {
-		codProduto: string;
-		descProduto: string;
-		ncmsh: string;
-		cst: string;
-		origem: string;
-		cfop: string;
-		unidade: string;
-		quantidade: string;
-		valorUnitario: string;
-		valorTotal: string;
-		bcIcms: string;
-		valorIcms: string;
-		valorIpi: string;
-		aliqIcms: string;
-		aliqIpi: string;
-	}
-	
+
+	import type { Condicao } from '$lib/../app'; // Ajuste o caminho conforme necessário
+	import type { DetalhesXML } from '$lib/types'; // Ajuste o caminho conforme necessário
+
 	let selectedTipoDeNF: string | null = null;
 	let selectedPrioridade: string | null = null;
 	let selectedFormaPagamento: string | null = null; // Estado para a seleção do Combobox de Forma de Pagamento
-	
+
 	let condicaoOptions: { label: string; value: string }[] = []; // Opções para o Combobox de Forma de Pagamento
 	let tipoDeNFOptions: { label: string; value: string }[] = []; // Opções para o Combobox de Tipo de NF
 	let prioridadeOptions: { label: string; value: string }[] = []; // Opções para o Combobox de Prioridade
-	
+
 	let loadingCondicoes: boolean = true;
 	let errorCondicoes: string | null = null;
-	
+
 	// Variáveis para a busca do XML
 	let xmlKey: string = '';
 	let detalhesXML: DetalhesXML | null = null;
 	let loadingDetalhes: boolean = false;
 	let errorDetalhes: string | null = null;
-	
+
 	const handleTipoDeNFSelect = (event: CustomEvent<{ selected: string }>) => {
 		selectedTipoDeNF = event.detail.selected;
 		console.log('Tipo de NF selecionado:', selectedTipoDeNF);
 	};
-	
+
 	const handlePrioridadeSelect = (event: CustomEvent<{ selected: string }>) => {
 		selectedPrioridade = event.detail.selected;
 		console.log('Prioridade selecionada:', selectedPrioridade);
 	};
-	
+
 	const handleCondicaoSelect = (event: CustomEvent<{ selected: string }>) => {
 		selectedFormaPagamento = event.detail.selected;
 		console.log('Forma de Pagamento selecionada:', selectedFormaPagamento);
 	};
-	
+
 	const handleBuscarXML = async () => {
 		if (!xmlKey.trim()) {
 			console.warn('A chave XML está vazia.');
 			return;
 		}
-		
+
 		loadingDetalhes = true;
 		errorDetalhes = null;
 		detalhesXML = null;
-		
+
 		try {
 			detalhesXML = await fetchDetalhesXML(xmlKey.trim());
 			console.log('Detalhes do XML:', detalhesXML);
@@ -102,27 +68,15 @@
 			loadingDetalhes = false;
 		}
 	};
-	
+
 	onMount(async () => {
 		try {
-			// Tenta recuperar os dados de Condicoes, tipoDeNFOptions e prioridadeOptions do IndexedDB
-			let [condicoes, tipoNF, prioridade] = await Promise.all([
-				getData('Condicoes'),
-				getData('tipoDeNFOptions'),
-				getData('prioridadeOptions')
-			]);
-			
-			// Se algum dado estiver ausente, faz o fetch e salva
-			if (!condicoes || !tipoNF || !prioridade) {
-				await fetchAndLoadData();
-				condicoes = await getData('Condicoes');
-				tipoNF = await getData('tipoDeNFOptions');
-				prioridade = await getData('prioridadeOptions');
-			}
-			
+			// Tenta recuperar os dados de Condicoes, tipoDeNFOptions e prioridadeOptions do fetchAndLoadData
+			const fetchedData = await fetchAndLoadData();
+
 			// Mapeia os dados de Condicoes para as opções do Combobox
-			if (condicoes && Array.isArray(condicoes)) {
-				condicaoOptions = condicoes.map((condicao: Condicao) => ({
+			if (fetchedData.Condicoes && Array.isArray(fetchedData.Condicoes)) {
+				condicaoOptions = fetchedData.Condicoes.map((condicao: Condicao) => ({
 					label: condicao.Desc.trim(),
 					value: condicao.E4_CODIGO.trim()
 				}));
@@ -130,18 +84,18 @@
 			} else {
 				console.warn('Nenhum dado de Condicoes encontrado.');
 			}
-			
+
 			// Atribui as opções de Tipo de NF
-			if (tipoNF && Array.isArray(tipoNF)) {
-				tipoDeNFOptions = tipoNF;
+			if (fetchedData.tipoDeNFOptions && Array.isArray(fetchedData.tipoDeNFOptions)) {
+				tipoDeNFOptions = fetchedData.tipoDeNFOptions;
 				console.log('Tipo de NF recuperado:', tipoDeNFOptions);
 			} else {
 				console.warn('Nenhum dado de Tipo de NF encontrado.');
 			}
-			
+
 			// Atribui as opções de Prioridade
-			if (prioridade && Array.isArray(prioridade)) {
-				prioridadeOptions = prioridade;
+			if (fetchedData.prioridadeOptions && Array.isArray(fetchedData.prioridadeOptions)) {
+				prioridadeOptions = fetchedData.prioridadeOptions;
 				console.log('Prioridade recuperada:', prioridadeOptions);
 			} else {
 				console.warn('Nenhuma prioridade encontrada.');
@@ -191,7 +145,7 @@
 				</button>
 			</div>
 		</div>
-		
+
 		<div id="rightButtons" class="flex gap-2">
 			<button class="tooltip tooltip-bottom btn btn-outline" data-tip="Incluir Nota Manual">
 				<a href="/lancamento-notas/incluir"><IconPencilUp /></a>
@@ -211,7 +165,7 @@
 		</div>
 	</div>
 	<div id="secondLine" class="flex w-full h-full gap-5">
-		<div id="detailsXML" class="card w-[30vw] h-full bg-base-100 p-5 gap-5">
+		<div id="detailsXML" class="card w-[40vw] h-full bg-base-100 p-5 gap-5">
 			{#if loadingDetalhes}
 				<p>Carregando detalhes do XML...</p>
 			{:else if errorDetalhes}
@@ -220,17 +174,26 @@
 				<div class="flex justify-between">
 					<div class="flex gap-2 items-center justify-start">
 						<span class="text-lg font-medium">FORNECEDOR:</span>
-						<span class="text-sm opacity-70">{detalhesXML.nomeEmitente} - {detalhesXML.cnpjEmitente}</span>
+						<div class="flex flex-col">
+							<span class="text-sm opacity-70">{detalhesXML.nomeEmitente}</span>
+							<span class="text-xs opacity-70"> {detalhesXML.cnpjEmitente}</span>
+						</div>
 					</div>
 					<div class="flex gap-2 items-center justify-start">
 						<span class="text-lg font-medium">NF:</span>
-						<span class="text-sm opacity-70">{detalhesXML.numero} - {detalhesXML.serie}</span>
+						<span class="text-sm opacity-70 truncate"
+							>{detalhesXML.numero} - {detalhesXML.serie}</span
+						>
 					</div>
 				</div>
 				<div class="flex justify-between">
 					<div class="flex gap-2 items-center justify-start">
 						<span class="text-lg font-medium">FILIAL:</span>
-						<span class="text-sm opacity-70">{detalhesXML.nomeDestinatario} - {detalhesXML.cnpjDestinatario}</span>
+						<div class="flex flex-col">
+							<span class="text-sm opacity-70"
+								>{detalhesXML.filialName || detalhesXML.nomeDestinatario}</span
+							><span class="text-xs opacity-70"> {detalhesXML.cnpjDestinatario}</span>
+						</div>
 					</div>
 					<div class="flex gap-2 items-center justify-start">
 						<span class="text-lg font-medium">DATA:</span>
@@ -283,11 +246,11 @@
 				</div>
 			</div>
 		</div>
-		
+
 		<div>
 			<textarea
 				placeholder="Adicione suas Observações..."
-				class="p-5 text-lg textarea w-[35vw] h-full bg-base-100"
+				class="p-5 text-lg textarea w-[25vw] h-full bg-base-100"
 			/>
 		</div>
 	</div>

@@ -1,15 +1,46 @@
 // src/lib/types/tableTypes.ts
 
-<<<<<<< HEAD
-// Coluna genérica usada em várias tabelas
-export interface Column<T> {
-	header: string; // O rótulo da coluna (cabeçalho)
-	accessorKey: keyof T; // Chave usada para acessar o dado no objeto T
-	cell?: (row: T) => any; // Função opcional para customizar a célula
-	component?: any; // Componente opcional para renderização de células dinâmicas
-	props?: (row: T) => Record<string, any>; // Propriedades opcionais passadas para o componente
-	isFilterable?: boolean; // Indica se a coluna pode ser filtrada
-=======
+// src/lib/types.ts
+export interface DetalhesXML {
+    numero: string;
+    serie: string;
+    dataEmissao: string;
+    valorTotalDaNota: string;
+    nomeEmitente: string;
+    cnpjEmitente: string;
+    ufEmitente: string;
+    nomeDestinatario: string;
+    cnpjDestinatario: string;
+    ufDestinatario: string;
+    informacoesAdicionais: string;
+    itens: Item[];
+    filialName?: string; // Nome da filial após triangulação
+}
+
+export interface Item {
+    codProduto: string;
+    descProduto: string;
+    ncmsh: string;
+    cst: string;
+    origem: string;
+    cfop: string;
+    unidade: string;
+    quantidade: string;
+    valorUnitario: string;
+    valorTotal: string;
+    bcIcms: string;
+    valorIcms: string;
+    valorIpi: string;
+    aliqIcms: string;
+    aliqIpi: string;
+}
+
+export interface Filial {
+    numero: string;
+    filial: string;
+    cnpjFilial: string;
+}
+
 export interface Column<T> {
 	header: string;
 	accessorKey: keyof T;
@@ -18,7 +49,6 @@ export interface Column<T> {
 	props?: (row: T) => Record<string, any>;
 	isFilterable: boolean; // Agora isFilterable é sempre booleano
 	class?:string;
->>>>>>> fe242afe9d703777fb5b91b9ff3a57e2868c792b
 }
 
 // Interface genérica para dados da tabela
