@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { columns } from '$lib/components/portaria/historico/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
+	import { fetchAndSaveFiliais } from '$lib/services/generalFetch';
 	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconPlus } from '@tabler/icons-svelte';

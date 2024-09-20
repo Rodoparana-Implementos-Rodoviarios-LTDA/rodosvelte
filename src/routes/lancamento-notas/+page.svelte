@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { columns } from '../../lib/components/prenota/tabela/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
+	import { fetchAndLoadData } from '$lib/services/generalFetch';
 	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconFileTypeXml, IconPencilUp } from '@tabler/icons-svelte';
@@ -30,7 +30,7 @@
 
 	// Carrega as filiais no IndexedDB ao carregar a página
 	onMount(async () => {
-		await fetchAndSaveFiliais(); // Chama a função para buscar e salvar as filiais
+		await fetchAndLoadData(); // Chama a função para buscar e salvar as filiais
 	});
 </script>
 
