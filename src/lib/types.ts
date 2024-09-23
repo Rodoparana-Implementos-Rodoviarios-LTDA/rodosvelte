@@ -40,6 +40,12 @@ export interface Filial {
     filial: string;
     cnpjFilial: string;
 }
+// src/lib/types.ts
+export interface ProdutoProtheus {
+    codigo: string;
+    descricao: string;
+    // Adicione outros campos relevantes conforme necessário
+}
 
 export interface Column<T> {
 	header: string;

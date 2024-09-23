@@ -1,4 +1,4 @@
-import type { Column, PreNota } from '$lib/types/tableTypes';
+import type { Column, PreNota } from '$lib/types';
 import UserAvatar from '$lib/components/ui/UserAvatar.svelte';
 
 import fililalHover from '$lib/components/ui/fililalHover.svelte';

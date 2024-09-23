@@ -2,7 +2,7 @@
 	import { createEventDispatcher, onMount } from 'svelte';
 	import SortableHeader from './SortableHeader.svelte';
 	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetch para os dados
-	import type { Column } from '$lib/types/tableTypes';
+	import type { Column } from '$lib/types/types';
 
 	// Props recebidas
 	export let columns: Column<any>[] = [];
