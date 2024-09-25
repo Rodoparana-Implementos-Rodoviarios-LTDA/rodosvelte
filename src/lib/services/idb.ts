@@ -22,7 +22,11 @@ const openDB = (): Promise<IDBDatabase> => {
     };
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = (event) => reject(`Erro ao abrir o IndexedDB: ${event.target.error}`);
+    
+    request.onerror = (event: any) => {
+      console.error('Erro ao abrir o IndexedDB:', event.target.error);
+      reject(`Erro ao abrir o IndexedDB: ${event.target.error}`);
+    };
   });
 };
 
@@ -40,9 +44,11 @@ export async function getData(key: string): Promise<any> {
 
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {
+      console.log(`Dados recuperados para chave "${key}":`, request.result);
       resolve(request.result?.data || null);
     };
     request.onerror = () => {
+      console.error(`Erro ao buscar dados com a chave "${key}":`, request.error);
       reject(`Erro ao buscar dados com a chave: ${key}`);
     };
   });
@@ -56,12 +62,16 @@ export async function saveData(key: string, data: any): Promise<void> {
 
   return new Promise((resolve, reject) => {
     const request = store.put({ id: key, data });
-    
+
     request.onsuccess = () => {
-      transaction.oncomplete = () => resolve();
+      transaction.oncomplete = () => {
+        console.log(`Dados salvos para a chave "${key}":`, data);
+        resolve();
+      };
     };
-    
+
     request.onerror = () => {
+      console.error(`Erro ao salvar dados com a chave "${key}":`, request.error);
       reject(`Erro ao salvar dados com a chave: ${key}`);
     };
   });
@@ -75,12 +85,16 @@ export async function deleteData(key: string): Promise<void> {
 
   return new Promise((resolve, reject) => {
     const request = store.delete(key);
-    
+
     request.onsuccess = () => {
-      transaction.oncomplete = () => resolve();
+      transaction.oncomplete = () => {
+        console.log(`Dados deletados para a chave "${key}"`);
+        resolve();
+      };
     };
-    
+
     request.onerror = () => {
+      console.error(`Erro ao deletar dados com a chave "${key}":`, request.error);
       reject(`Erro ao deletar dados com a chave: ${key}`);
     };
   });

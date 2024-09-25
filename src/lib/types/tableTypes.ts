@@ -33,7 +33,7 @@ export interface borracharia {
 	Cliente: string;
 	Vendedor: string;
 	Produto: string;
-	Saldo: string;
+	Saldo: number;
 	Emissao: string;
 	actions?: () => void; // Ações como função opcional
 }
@@ -44,7 +44,7 @@ export interface PreNota {
 	NF: string;
 	Status: string;
 	Fornecedor: string;
-	Emissao: string;
+	Emissao: string;a
 	Inclusao: string;
 	Vencimento: string;
 	Valor: string;
@@ -55,6 +55,7 @@ export interface PreNota {
 	Rec: string;
 	actions?: () => void; // Ações como função opcional
 }
+
 
 
 export interface HistoricoData {
@@ -68,8 +69,9 @@ export interface HistoricoData {
 	Placa: string;
 	Observacao: string;
 	Saldo: number;
+	Z08_RETPOR: 'C' | 'R'; // Adiciona a coluna que armazena Cliente ou Motorista (C/R)
 	actions?: () => void; // Função de ação personalizada
-}
+  }
 <<<<<<< HEAD
 // Coluna genérica usada para a tabela
 

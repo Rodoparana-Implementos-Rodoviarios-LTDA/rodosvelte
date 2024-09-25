@@ -1,26 +1,30 @@
 import type { HistoricoData, Column } from '$lib/types/tableTypes';
-import ConfButton from '$lib/components/portaria/historico/ConfButton.svelte'
+import Action from './Action.svelte';  // Corrige o caminho para o Action.svelte
 
 export const columns: Column<HistoricoData>[] = [
   {
     accessorKey: 'Filial',
     header: 'Filial',
     cell: (row: HistoricoData) => row.Filial,
+    isFilterable: true
   },
   {
     accessorKey: 'NF',
     header: 'Nota Fiscal',
     cell: (row: HistoricoData) => row.NF,
+    isFilterable: true
   },
   {
     accessorKey: 'Cliente',
     header: 'Cliente',
     cell: (row: HistoricoData) => row.Cliente,
+    isFilterable: true
   },
   {
     accessorKey: 'Produto',
     header: 'Produto',
     cell: (row: HistoricoData) => row.Produto,
+    isFilterable: true
   },
   {
     accessorKey: 'DataHora',
@@ -31,16 +35,19 @@ export const columns: Column<HistoricoData>[] = [
     accessorKey: 'Responsavel',
     header: 'Responsável',
     cell: (row: HistoricoData) => row.Responsavel,
+    isFilterable: true
   },
   {
     accessorKey: 'Placa',
     header: 'Placa',
     cell: (row: HistoricoData) => row.Placa,
+    isFilterable: true
   },
   {
-    accessorKey: 'Observacao',
+    accessorKey: 'Observacao',  // Coluna para observações
     header: 'Observação',
     cell: (row: HistoricoData) => row.Observacao || 'Sem Observação',
+    isFilterable: true // Permitir filtro na coluna de observação
   },
   {
     accessorKey: 'Saldo',
@@ -50,13 +57,13 @@ export const columns: Column<HistoricoData>[] = [
   {
     accessorKey: 'actions',
     header: 'Ações',
-    component: ConfButton, // Usa o componente ConfButton
+    component: Action,  // Usa o componente Action para ações
     props: (row: HistoricoData) => ({
-      documento: row.NF,  // Passa o NF (nota fiscal) para o componente ConfButton
-      produto: row.Produto,  // Passa o Produto para o componente ConfButton
-      saldoMaximo: row.Saldo,  // Passa o saldo para o componente ConfButton
-      responsavel: row.Responsavel, // Passa o responsável
+      documento: row.NF,  // Passa o NF (nota fiscal)
+      produto: row.Produto,  // Passa o Produto
+      saldoConferencia: row.Saldo,  // Passa o saldo máximo
+      responsavel: row.Responsavel
     }),
-    isFilterable: false, // Ações não são filtráveis
+    isFilterable: false,  // Ações não são filtráveis
   },
 ];

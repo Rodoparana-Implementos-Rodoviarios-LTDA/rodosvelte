@@ -1,180 +1,186 @@
+<!-- ActionButton.svelte -->
 <script lang="ts">
-  import { fly } from 'svelte/transition';
-  import { circOut } from 'svelte/easing';
-  import { saldoStore } from '$lib/components/portaria/historico/saldoStore'; // Importa a store de saldo
-  import { IconCopyPlus } from '@tabler/icons-svelte';
+	import { fly } from 'svelte/transition';
+	import { circOut } from 'svelte/easing';
+	import {
+		IconCopyPlus,
+		IconClipboard,
+		IconUser,
+		IconCar
+	} from '@tabler/icons-svelte';
 
-  // Recebe as informações adicionais já disponíveis no contexto da aplicação
-  export let documento: string;
-  export let filial: string;
-  export let produto: string;
-  export let item: string;
-  export let observacoes: string;
-  export let usuario: string = "usuarioAtual";
-  export let origem: string = "OrigemTeste";
+	// Importando o componente ProductItens
+	import ProductItens from './ProductItens.svelte';
+	
+	// Recebendo as informações via props
+	export let documentoCompleto: string; 
+	export let clienteCompleto: string;
+	export let filial: string; 
+	export let observacao: string | null = '';
+	export let usuario: string = '000001';
+	export let origem: string = 'E';
 
-  export let saldoMaximo: number; // Recebe o saldo máximo para o range de quantidade
-  let quantity = 0; // Quantidade inicial para o range
-  let responsible = "";
-  let plate = "";
-  let selectedOption = "Cliente";
-  let isLoading = false;
-  let errorMessage = "";
-  let drawerVisible = false; // Controla a visibilidade do drawer
+	// Variáveis de estado
+	let responsible = '';
+	let plate = '';
+	let retiradaPor = 'C';
+	let isLoading = false;
+	let errorMessage = '';
+	let drawerVisible = false;
 
-  // Função para lidar com a ação de confirmar e enviar a solicitação via POST
-  async function handleConfirm() {
-    const body = {
-      filial,
-      documento,
-      produto,
-      item,
-      quantidade: quantity,
-      retiradopor: selectedOption,
-      responsavel: responsible,
-      placa: plate,
-      observacoes,
-      usuario,
-      origem
-    };
+	// Variável para armazenar os itens selecionados
+	let itensSelecionados = [];
 
-    try {
-      isLoading = true;
-      const response = await fetch('http://172.16.99.174:8400/rest/MovPortaria/IncluirItem', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
+	// Abrir o drawer
+	function openDrawer() {
+		drawerVisible = true;
+	}
 
-      if (!response.ok) {
-        throw new Error('Erro ao enviar a solicitação.');
-      }
+	// Função para enviar a solicitação via POST
+	async function handleConfirm() {
+		console.log('handleConfirm - Início da função');
 
-      // Atualiza o saldo na store após o envio
-      saldoStore.set(saldoMaximo - quantity);
+		// Validar campos obrigatórios
+		if (!responsible || !plate) {
+			errorMessage = 'Preencha todos os campos obrigatórios.';
+			console.error('Erro: Campos obrigatórios faltando - responsible:', responsible, 'plate:', plate);
+			return;
+		}
 
-      console.log('Solicitação enviada com sucesso');
-      errorMessage = ''; // Limpa a mensagem de erro
-      drawerVisible = false; // Fecha o drawer após a confirmação
-    } catch (error) {
-      console.error(error);
-      errorMessage = 'Erro ao enviar a solicitação.';
-    } finally {
-      isLoading = false;
-    }
-  }
+		// Construir o corpo da solicitação
+		const body = {
+			filial: filial || '',
+			documento: documentoCompleto,
+			cliente: clienteCompleto,
+			itens: itensSelecionados,
+			retiradopor: retiradaPor || '',
+			responsavel: responsible || '',
+			placa: plate || '',
+			observacoes: observacao || '',
+			usuario: usuario || '',
+			origem: origem || ''
+		};
 
-  // Função para fechar o Drawer ao clicar fora
-  function closeDrawer(event: Event) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.drawer-content')) {
-      drawerVisible = false;
-    }
-  }
+		console.log('Valores dos campos do body:');
+		console.log(JSON.stringify(body, null, 2));
+
+		try {
+			isLoading = true;
+			const response = await fetch('http://protheus-vm:9010/rest/MovPortaria/IncluirItem', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(body)
+			});
+
+			console.log('Status da resposta do POST:', response.status);
+
+			const responseData = await response.json();
+			console.log('Dados recebidos da API após o POST:', responseData);
+
+			if (!response.ok || !responseData.success) {
+				console.error('Erro na resposta da API após o POST:', responseData);
+				errorMessage = `Erro: ${responseData.mensagem || 'Erro ao enviar a solicitação.'}`;
+				return;
+			}
+
+			console.log('Solicitação enviada com sucesso', responseData);
+			errorMessage = '';
+			drawerVisible = false; // Fecha o drawer após o envio
+		} catch (error) {
+			console.error('Erro na requisição:', error);
+			errorMessage = 'Erro ao enviar a solicitação.';
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	// Função para fechar o drawer ao clicar fora dele
+	function closeDrawer(event: Event) {
+		const target = event.target as HTMLElement;
+		if (!target.closest('.drawer-content')) {
+			drawerVisible = false;
+		}
+	}
 </script>
 
 <!-- Botão que abre o Drawer -->
-<button class="btn btn-primary" on:click={() => drawerVisible = true}>
-  <IconCopyPlus />
+<button class="btn btn-primary" on:click={openDrawer}>
+	<IconCopyPlus />
 </button>
 
 <!-- Drawer -->
 {#if drawerVisible}
-  <!-- Overlay que fecha o Drawer ao clicar fora -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-40" on:click={closeDrawer}></div>
+	<!-- Overlay que fecha o Drawer ao clicar fora -->
+	<div class="fixed inset-0 bg-black bg-opacity-50 z-40" on:click={closeDrawer}></div>
 
-  <!-- Conteúdo do Drawer com animação fly -->
-  <div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
-    <div class="w-full h-screen bg-base-100 text-info p-8">
-      <h2 class="text-lg font-bold mb-4">Seleção de Pneus</h2>
-      <p class="mb-4">Saldo disponível: {saldoMaximo}</p>
+	<!-- Conteúdo do Drawer com animação fly -->
+	<div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
+		<div class="w-full h-screen bg-base-100 text-info p-4">
+			<h2 class="text-xl font-bold mb-4 text-neutral-content">Seleção de Produtos</h2>
 
-      <!-- Range Slider de quantidade de pneus -->
-      <div class="mb-4">
-        <input
-          type="range"
-          min="0"
-          max={saldoMaximo}
-          bind:value={quantity}
-          class="range range-primary"
-        />
-        <p>Quantidade selecionada: {quantity}</p>
-      </div>
+			<!-- Componente ProductItens que cuida de exibir a lista de produtos -->
+			<ProductItens {documentoCompleto} {clienteCompleto} {filial} bind:itensSelecionados />
 
-      <!-- Radio Button para selecionar entre Cliente e Motorista -->
-      <div class="mb-4 flex space-x-4">
-        <label class="flex items-center">
-          <input 
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Cliente"
-            bind:group={selectedOption}
-            checked
-          />
-          <span class="ml-2">Cliente</span>
-        </label>
+			<!-- Inputs para o nome do responsável e a placa -->
+			<div class="mb-4 space-y-2">
+				<div class="relative">
+					<IconUser class="absolute left-3 top-3 text-base-content" />
+					<input
+						type="text"
+						placeholder="Nome do responsável"
+						bind:value={responsible}
+						class="input input-bordered w-full pl-10"
+					/>
+				</div>
+				<div class="relative">
+					<IconCar class="absolute left-3 top-3 text-base-content" />
+					<input
+						type="text"
+						placeholder="Placa do carro"
+						bind:value={plate}
+						class="input input-bordered w-full pl-10"
+					/>
+				</div>
+			</div>
 
-        <label class="flex items-center">
-          <input
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Motorista"
-            bind:group={selectedOption}
-          />
-          <span class="ml-2">Motorista</span>
-        </label>
-      </div>
+			<div class="mb-4">
+				<textarea
+					class="textarea textarea-bordered"
+					placeholder="Observações"
+					bind:value={observacao}
+				></textarea>
+			</div>
 
-      <!-- Inputs para o nome do responsável e a placa -->
-      <div class="mb-4 space-y-2">
-        <input
-          type="text"
-          placeholder="Nome do responsável"
-          bind:value={responsible}
-          class="input input-bordered w-full"
-        />
-        <input
-          type="text"
-          placeholder="Placa do carro"
-          bind:value={plate}
-          class="input input-bordered w-full"
-        />
-      </div>
+			<!-- Botões de Ação -->
+			<div class="flex justify-between mt-6">
+				<button class="btn btn-primary" on:click={handleConfirm} disabled={isLoading}>
+					{#if isLoading}
+						Enviando...
+					{:else}
+						Confirmar
+					{/if}
+				</button>
+				<button class="btn btn-outline" on:click={() => (drawerVisible = false)}> Cancelar </button>
+			</div>
 
-      <!-- Botões de Ação -->
-      <div class="flex justify-between mt-6">
-        <button class="btn btn-primary" on:click={handleConfirm} disabled={isLoading}>
-          {#if isLoading}
-            Enviando...
-          {:else}
-            Confirmar
-          {/if}
-        </button>
-        <button class="btn btn-outline" on:click={() => drawerVisible = false}>
-          Cancelar
-        </button>
-      </div>
-
-      {#if errorMessage}
-        <p class="text-error mt-4">{errorMessage}</p>
-      {/if}
-    </div>
-  </div>
+			{#if errorMessage}
+				<p class="text-error mt-4">{errorMessage}</p>
+			{/if}
+		</div>
+	</div>
 {/if}
 
 <style>
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 400px;
-    display: flex;
-    justify-content: space-between;
-    z-index: 50;
-  }
+	.drawer {
+		position: fixed;
+		top: 0;
+		right: 0;
+		height: 100vh;
+		width: 400px;
+		display: flex;
+		justify-content: space-between;
+		z-index: 50;
+	}
 </style>

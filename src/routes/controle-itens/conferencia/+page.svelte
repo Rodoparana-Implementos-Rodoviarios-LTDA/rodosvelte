@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { columns } from '$lib/components/portaria/historico/columns'; // Importa as colunas
+	import { columns } from '$lib/components/portaria/conferencia/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
+
 	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconPlus } from '@tabler/icons-svelte';
+	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
   
 	// Defina o endpoint no nível da página
 	export let endpoint: string = 'api/portaria';
@@ -50,8 +51,7 @@
 			tabindex="0"
 			class="dropdown-content menu bg-base-100 rounded-box z-[1] border border-secondary w-52 p-2 shadow"
 		  >
-			<li><a class="text-lg" href="/prenotas/incluir">Manual</a></li>
-			<li><a class="text-lg" href="/prenotas/xml">XML</a></li>
+			<li><a class="text-lg" href="/controle-itens">Borracharia</a></li>
 		  </ul>
 		</div>
 		<!-- Componente de Filtros -->

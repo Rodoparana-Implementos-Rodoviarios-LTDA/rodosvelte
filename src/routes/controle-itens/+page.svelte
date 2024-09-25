@@ -44,16 +44,7 @@
 	<!-- Área dos Filtros e Exportação -->
 	<div class="flex flex-col items-end">
 	  <div class="flex justify-end space-x-4 pb-5">
-		<div class="dropdown dropdown-end">
-		  <div tabindex="0" role="button" class="btn btn-outline m-1"><IconPlus /></div>
-		  <ul
-			tabindex="0"
-			class="dropdown-content menu bg-base-100 rounded-box z-[1] border border-secondary w-52 p-2 shadow"
-		  >
-			<li><a class="text-lg" href="/prenotas/incluir">Manual</a></li>
-			<li><a class="text-lg" href="/prenotas/xml">XML</a></li>
-		  </ul>
-		</div>
+		
 		<!-- Componente de Filtros -->
 		<Filtrar {columns} on:applyFilters={applyFilters} on:resetFilters={resetFilters} />
 	  </div>
