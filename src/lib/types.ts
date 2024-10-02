@@ -111,6 +111,17 @@ export interface XML {
 	aliqIcms: string;
 	valorIpi: string;
 	aliqIpi: string;
+	protheus: {
+		B1_COD: string;
+		B1_DESC: string;
+		B1_ORIGEM: string;
+		B1_UM: string;
+		B1_LOCPAD: string;
+		B1_GRUPO: string;
+		B1_TIPO: string;
+		B1_GRTRIB: string;
+		B1_POSIPI: string;
+	} | null; // A propriedade "protheus" pode ser um objeto ou null
 }
 
 export interface HistoricoData {

@@ -1,11 +1,11 @@
-package historico
+package borracharia
 
 import (
 	"backend/utils"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 )
@@ -14,47 +14,32 @@ import (
 // VARIAVEIS GLOBAIS
 // ===================
 var (
-	historicoCache   []Historico      // Cache dos dados de historico
-	cacheTimestamp   time.Time        // Timestamp do cache
-	cacheDuration    = 1 * time.Hour  // Duracao do cache ajustada para 1 hora
-	mutex            sync.Mutex       // Controle de concorrencia para o cache
-	cacheInitialized bool             // Flag para indicar se o cache foi inicializado
-	cacheUpdating    bool             // Flag para indicar se o cache esta sendo atualizado
+	borrachariaCache []Borracharia
+	cacheTimestamp   time.Time
+	cacheDuration    = 1 * time.Hour
+	mutex            sync.Mutex
+	cacheInitialized bool
+	cacheUpdating    bool
 )
 
 // ===================
 // ESTRUTURAS DE DADOS
 // ===================
 
-type Historico struct {
-	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao string
-	Saldo, Rec                                                                       int
+type Borracharia struct {
+	Filial, NF, Vendedor, Cliente, Emissao string
 }
 
-type RawHistorico struct {
-	Filial      string `json:"Z08_FILIAL"`
-	Origem      string `json:"Z08_ORIGEM"`
-	Doc         string `json:"Z08_DOC"`
-	Serie       string `json:"Z08_SERIE"`
-	CodCli      string `json:"Z08_CLIFOR"`
-	LojaCli     string `json:"Z08_LOJA"`
-	NomeCliente string `json:"A1_NOME"`
-	CodProd     string `json:"Z08_COD"`
-	ItemProd    string `json:"Z08_ITEM"`
-	NomeProd    string `json:"B1_DESC"`
-	TipMov      string `json:"Z08_TIPMOV"`
-	Data        string `json:"Z08_DATA"`
-	Hora        string `json:"Z08_HORA"`
-	RetirPor    string `json:"Z08_RETPOR"`
-	Respons     string `json:"Z08_RESPON"`
-	Placa       string `json:"Z08_PLACA"`
-	Obs         string `json:"Z08_OBSERV"`
-	CodUsuario  string `json:"Z08_CODUSR"`
-	Conferido   string `json:"Z08_CONFER"`
-	DataConf    string `json:"Z08_DTCONF"`
-	HoraConf    string `json:"Z08_HRCONF"`
-	Rec         int    `json:"Z08R_E_C_N_O_"`
-	Saldo       int    `json:"SALDO"`
+type RawBorracharia struct {
+	Filial       string `json:"F2_FILIAL"`
+	Documento    string `json:"F2_DOC"`
+	Serie        string `json:"F2_SERIE"`
+	Emissao      string `json:"F2_EMISSAO"`
+	Vendedor     string `json:"F2_VEND1"`
+	VendedorNome string `json:"A3_NOME"`
+	Cliente      string `json:"F2_CLIENTE"`
+	Loja         string `json:"F2_LOJA"`
+	ClienteNome  string `json:"A1_NOME"`
 }
 
 // ===================
@@ -62,107 +47,87 @@ type RawHistorico struct {
 // ===================
 
 func InitializeCache() {
-	log.Println("Carregando dados iniciais de historico...")
-	fetchHistoricoData()
+	log.Println("Carregando dados iniciais de borracharia...")
+	fetchBorrachariaData()
 }
 
-func fetchHistoricoData() {
+func fetchBorrachariaData() {
 	mutex.Lock()
 
-	// Verifica se o cache ja esta sendo atualizado
 	if cacheUpdating {
-		log.Println("Atualizacao do cache de historico ja esta em andamento, aguardando...")
+		log.Println("Atualizacao do cache de borracharia ja esta em andamento, aguardando...")
 		mutex.Unlock()
 		return
 	}
 
-	cacheUpdating = true // Marca que o cache esta sendo atualizado
+	cacheUpdating = true
 	mutex.Unlock()
 
-	// Realiza a requisicao para o endpoint
-	rawResponse, err := utils.FetchRawFromEndpoint("http://protheus-vm:9010/rest/MovPortaria/CarregamentoSaida", nil)
+	resp, err := http.Get("http://protheus-vm:9010/rest/MovPortaria/NFSaidasDisponiveis")
 	if err != nil {
-		log.Printf("Erro ao buscar historico: %v", err)
+		log.Printf("Erro ao buscar dados de borracharia: %v", err)
 		mutex.Lock()
-		cacheUpdating = false // Libera a flag de atualizacao em caso de erro
+		cacheUpdating = false
+		mutex.Unlock()
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Erro ao ler resposta da API: %v", err)
+		mutex.Lock()
+		cacheUpdating = false
 		mutex.Unlock()
 		return
 	}
 
-	cleanedResponse := cleanJSON(rawResponse)
-
-	var historico []RawHistorico
-	if err := json.Unmarshal([]byte(cleanedResponse), &historico); err != nil {
-		log.Printf("Erro ao decodificar JSON do historico: %v", err)
+	var rawBorracharia []RawBorracharia
+	if err := json.Unmarshal(body, &rawBorracharia); err != nil {
+		log.Printf("Erro ao decodificar JSON da borracharia: %v", err)
 		mutex.Lock()
-		cacheUpdating = false // Libera a flag de atualizacao em caso de erro
+		cacheUpdating = false
 		mutex.Unlock()
 		return
 	}
 
-	// Atualiza o cache
 	mutex.Lock()
-	historicoCache = processHistoricos(historico)
+	borrachariaCache = processBorracharia(rawBorracharia)
 	cacheTimestamp = time.Now()
 	cacheInitialized = true
-	cacheUpdating = false // Libera a flag de atualizacao
+	cacheUpdating = false
 	mutex.Unlock()
 
-	log.Println("Cache de historico atualizado com sucesso!")
+	log.Println("Cache de borracharia atualizado com sucesso!")
 }
 
 // ===================
-// GET
+// HANDLER HTTP
 // ===================
-func GetHistorico(w http.ResponseWriter, r *http.Request) {
+
+func GetBorracharia(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	mutex.Lock()
-
-	// Verifica se o cache esta expirado ou vazio
-	if !cacheInitialized || len(historicoCache) == 0 || time.Since(cacheTimestamp) > cacheDuration {
-		log.Println("Cache de historico expirado ou vazio. Carregando novos dados em background...")
-
-		// Atualiza o cache em segundo plano
-		go fetchHistoricoData()
+	if !cacheInitialized || len(borrachariaCache) == 0 || time.Since(cacheTimestamp) > cacheDuration {
+		log.Println("Cache de borracharia expirado ou vazio. Carregando novos dados em background...")
+		go fetchBorrachariaData()
 	}
 
-	// Aplica filtros aos dados do cache
-	filterableColumns := []string{"Filial", "NF", "Vendedor", "Cliente", "Produto", "DataHora", "Responsavel", "Placa", "Observacao", "Saldo", "Rec"}
-	filteredHistorico := applyFilters(historicoCache, r, filterableColumns)
+	filterableColumns := []string{"Filial", "NF", "Vendedor", "Cliente", "Emissao"}
+	filteredBorracharia := applyFilters(borrachariaCache, r, filterableColumns)
 
-	// Se nao houver resultados no cache, tenta buscar novos dados
-	if len(filteredHistorico) == 0 {
-		log.Println("Dados nao encontrados no cache, buscando no webservice...")
-
-		// Libera o mutex enquanto busca no webservice
+	if len(filteredBorracharia) == 0 {
 		mutex.Unlock()
-
-		// Requisita novos dados
-		fetchHistoricoData()
-
-		// Bloqueia novamente apos a requisicao
-		mutex.Lock()
-
-		// Aplica o filtro novamente apos atualizar o cache
-		filteredHistorico = applyFilters(historicoCache, r, filterableColumns)
-
-		// Se ainda assim nao encontrar, retorna erro
-		if len(filteredHistorico) == 0 {
-			mutex.Unlock()
-			http.Error(w, "Nenhum historico disponivel.", http.StatusNotFound)
-			return
-		}
+		http.Error(w, "Nenhuma informacao de borracharia disponivel.", http.StatusNotFound)
+		return
 	}
 
-	// Aplica classificacao e paginacao
-	sortedHistorico := applySorting(filteredHistorico, r)
-	paginatedHistorico := utils.Paginate(sortedHistorico, r)
+	sortedBorracharia := applySorting(filteredBorracharia, r)
+	paginatedBorracharia := utils.Paginate(sortedBorracharia, r)
 
 	mutex.Unlock()
 
-	// Retorna os dados filtrados, classificados e paginados
-	if err := json.NewEncoder(w).Encode(paginatedHistorico); err != nil {
+	if err := json.NewEncoder(w).Encode(paginatedBorracharia); err != nil {
 		http.Error(w, "Erro ao gerar a resposta.", http.StatusInternalServerError)
 	}
 }
@@ -171,59 +136,35 @@ func GetHistorico(w http.ResponseWriter, r *http.Request) {
 // FUNCOES AUXILIARES
 // ===================
 
-func cleanJSON(raw string) string {
-	return strings.ReplaceAll(strings.ReplaceAll(raw, "\n", ""), "\t", "")
+func applyFilters(borracharia []Borracharia, r *http.Request, filterableColumns []string) []Borracharia {
+	return utils.FilterData(borracharia, r, filterableColumns)
 }
 
-func applyFilters(historico []Historico, r *http.Request, filterableColumns []string) []Historico {
-	return utils.FilterData(historico, r, filterableColumns)
-}
-
-func applySorting(historico []Historico, r *http.Request) []Historico {
+func applySorting(borracharia []Borracharia, r *http.Request) []Borracharia {
 	sortBy := r.Header.Get("X-Sort-By")
 	sortOrder := r.Header.Get("X-Sort-Order")
 
 	if sortBy == "" {
-		sortBy = "DataHora"
+		sortBy = "Emissao"
 	}
 	if sortOrder == "" {
 		sortOrder = "desc"
 	}
 
-	return utils.SortByColumn(historico, sortBy, sortOrder)
+	return utils.SortByColumn(borracharia, sortBy, sortOrder)
 }
 
-// ===================
-// PROCESSAMENTO
-// ===================
-
-func processHistoricos(rawHistoricos []RawHistorico) []Historico {
-	var processed []Historico
-	for _, raw := range rawHistoricos {
-		nf := utils.TrimString(raw.Doc)
-		serie := utils.TrimString(raw.Serie)
-		nfCompleta := nf
-		if serie != "" {
-			nfCompleta += " - " + serie
+func processBorracharia(rawBorracharia []RawBorracharia) []Borracharia {
+	var processed []Borracharia
+	for _, raw := range rawBorracharia {
+		borracharia := Borracharia{
+			Filial:   utils.TrimString(raw.Filial),
+			NF:       utils.TrimString(raw.Documento) + " - " + utils.TrimString(raw.Serie),
+			Vendedor: utils.TrimString(raw.Vendedor) + " - " + utils.TrimString(raw.VendedorNome),
+			Cliente:  utils.TrimString(raw.Cliente) + " - " + utils.TrimString(raw.Loja) + " - " + utils.TrimString(raw.ClienteNome),
+			Emissao:  utils.FormatDate(utils.TrimString(raw.Emissao), "20060102", "02/01/2006"),
 		}
-
-		Data := utils.FormatDate(utils.TrimString(raw.Data), "20060102", "02/01/2006")
-
-		historicoItem := Historico{
-			Filial:      utils.TrimString(raw.Filial),
-			NF:          nfCompleta,
-			Vendedor:    utils.TrimString(raw.CodUsuario) + " - " + utils.TrimString(raw.Origem),
-			Cliente:     utils.TrimString(raw.CodCli) + " - " + utils.TrimString(raw.LojaCli) + " - " + utils.TrimString(raw.NomeCliente),
-			Produto:     utils.TrimString(raw.CodProd) + " - " + utils.TrimString(raw.ItemProd) + " - " + utils.TrimString(raw.NomeProd),
-			Saldo:       raw.Saldo,
-			Rec:         raw.Rec,
-			DataHora:    Data + " - " + utils.TrimString(raw.Hora),
-			Responsavel: utils.TrimString(raw.Respons),
-			Placa:       utils.TrimString(raw.Placa),
-			Observacao:  utils.TrimString(raw.Obs),
-		}
-
-		processed = append(processed, historicoItem)
+		processed = append(processed, borracharia)
 	}
 	return processed
 }

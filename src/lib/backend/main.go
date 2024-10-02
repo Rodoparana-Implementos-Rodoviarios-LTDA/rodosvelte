@@ -10,6 +10,7 @@ import (
 	"backend/pneus/borracharia/listanfs"
 	"backend/pneus/historico"
 	"backend/pneus/portaria"
+	"backend/prenotas/produtos" // Importa o package de produtos
 	"backend/prenotas/tabela"
 )
 
@@ -44,17 +45,19 @@ func main() {
 	portaria.InitializeCache()    // Carrega cache inicial de Portaria
 	historico.InitializeCache()   // Carrega cache inicial de Histórico
 	tabela.InitializeCache()      // Carrega cache inicial de Pré-Notas
+	produtos.InitializeCache()     // Carrega cache inicial de Produtos
 
 	// Multiplexer de rotas
 	mux := http.NewServeMux()
 
 	// Rotas de API
-	mux.HandleFunc("/api/prenotas", tabela.GetPreNotas)                     // PreNotas
+	mux.HandleFunc("/api/prenotas", tabela.GetPreNotas)                     // Pré-Notas
 	mux.HandleFunc("/api/login", login.AuthHandler)                         // Login
 	mux.HandleFunc("/api/borracharia", borracharia.GetBorracharia)          // Borracharia
 	mux.HandleFunc("/api/portaria", portaria.GetMovimentosPortaria)         // Portaria
 	mux.HandleFunc("/api/pneus/borracharia/listanfs", listanfs.GetListaNFS) // Lista de NFs Borracharia
 	mux.HandleFunc("/api/pneus/historico", historico.GetHistorico)          // Histórico de Saídas
+	mux.HandleFunc("/api/produto", produto.GetProdutos)                     // Produtos
 
 	// Adiciona o middleware de CORS ao multiplexer
 	handler := enableCors(mux)
