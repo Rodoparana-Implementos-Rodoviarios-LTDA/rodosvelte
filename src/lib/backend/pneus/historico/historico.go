@@ -27,8 +27,8 @@ var (
 // ===================
 
 type Historico struct {
-	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao string
-	Saldo, Rec                                                                       int
+	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao, DataConf, Seq string
+	Saldo                                                                                           int
 }
 
 type RawHistorico struct {
@@ -53,7 +53,7 @@ type RawHistorico struct {
 	Conferido   string `json:"Z08_CONFER"`
 	DataConf    string `json:"Z08_DTCONF"`
 	HoraConf    string `json:"Z08_HRCONF"`
-	Rec         int    `json:"Z08R_E_C_N_O_"`
+	Seq         string `json:"Z08_NUMSEQ"`
 	Saldo       int    `json:"SALDO"`
 }
 
@@ -128,7 +128,7 @@ func GetHistorico(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Aplica filtros aos dados do cache
-	filterableColumns := []string{"Filial", "NF", "Vendedor", "Cliente", "Produto", "DataHora", "Responsavel", "Placa", "Observacao", "Saldo", "Rec"}
+	filterableColumns := []string{"Filial", "NF", "Vendedor", "Cliente", "Produto", "DataHora", "Responsavel", "Placa", "Observacao", "Saldo", "Seq"}
 	filteredHistorico := applyFilters(historicoCache, r, filterableColumns)
 
 	// Se nao houver resultados no cache, tenta buscar novos dados
@@ -200,6 +200,11 @@ func applySorting(historico []Historico, r *http.Request) []Historico {
 func processHistoricos(rawHistoricos []RawHistorico) []Historico {
 	var processed []Historico
 	for _, raw := range rawHistoricos {
+		// Verifica se o campo "Conferido" nao esta vazio
+		if strings.TrimSpace(raw.Conferido) == "" {
+			continue
+		}
+
 		nf := utils.TrimString(raw.Doc)
 		serie := utils.TrimString(raw.Serie)
 		nfCompleta := nf
@@ -208,7 +213,7 @@ func processHistoricos(rawHistoricos []RawHistorico) []Historico {
 		}
 
 		Data := utils.FormatDate(utils.TrimString(raw.Data), "20060102", "02/01/2006")
-
+		DataConfere := utils.FormatDate(utils.TrimString(raw.DataConf), "20060102", "02/01/2006")
 		historicoItem := Historico{
 			Filial:      utils.TrimString(raw.Filial),
 			NF:          nfCompleta,
@@ -216,8 +221,9 @@ func processHistoricos(rawHistoricos []RawHistorico) []Historico {
 			Cliente:     utils.TrimString(raw.CodCli) + " - " + utils.TrimString(raw.LojaCli) + " - " + utils.TrimString(raw.NomeCliente),
 			Produto:     utils.TrimString(raw.CodProd) + " - " + utils.TrimString(raw.ItemProd) + " - " + utils.TrimString(raw.NomeProd),
 			Saldo:       raw.Saldo,
-			Rec:         raw.Rec,
+			Seq:         raw.Seq,
 			DataHora:    Data + " - " + utils.TrimString(raw.Hora),
+			DataConf:    DataConfere + " - " + utils.TrimString(raw.HoraConf),
 			Responsavel: utils.TrimString(raw.Respons),
 			Placa:       utils.TrimString(raw.Placa),
 			Observacao:  utils.TrimString(raw.Obs),

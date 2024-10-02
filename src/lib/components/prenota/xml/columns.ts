@@ -7,42 +7,50 @@ export const columns: Column<XML>[] = [
 	{
 		accessorKey: 'codProduto',
 		header: 'Código',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'descProduto',
 		header: 'Descrição Produto',
-		class: 'text-left truncate'
+		class: 'text-left truncate',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'ncmsh',
 		header: 'NCM/SH',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'cst',
 		header: 'CST',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'origem',
 		header: 'Origem',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'cfop',
 		header: 'CFOP',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'unidade',
 		header: 'Unidade',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'quantidade',
 		header: 'Quantidade',
-		class: 'text-center'
+		class: 'text-center',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'valorUnitario',
@@ -51,7 +59,8 @@ export const columns: Column<XML>[] = [
 		props: (row: any) => ({
 			value: parseFloat(row.valorUnitario)
 		}),
-		class: 'text-right'
+		class: 'text-right',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'valorTotal',
@@ -60,7 +69,8 @@ export const columns: Column<XML>[] = [
 		props: (row: any) => ({
 			value: parseFloat(row.valorTotal)
 		}),
-		class: 'text-right'
+		class: 'text-right',
+		isFilterable: false
 	},
 	{
 		accessorKey: 'valorIcms',
@@ -72,6 +82,7 @@ export const columns: Column<XML>[] = [
 			valorIpi: row.valorIpi,
 			aliqIpi: row.aliqIpi
 		}),
-		class: 'w-36 text-center'
+		class: 'w-36 text-center',
+		isFilterable: false
 	}
 ];

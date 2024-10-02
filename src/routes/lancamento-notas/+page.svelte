@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { columns } from '../../lib/components/prenota/tabela/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { fetchAndLoadData } from '$lib/services/generalFetch';
-	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconFileTypeXml, IconPencilUp } from '@tabler/icons-svelte';
 
@@ -15,26 +13,16 @@
 	// Função para aplicar filtros
 	function applyFilters(event: CustomEvent<Record<string, string>>) {
 		filters = event.detail; // Captura os filtros do evento
-		// Dispara um evento para atualizar a tabela
-		const applyEvent = new CustomEvent('applyFilters', { detail: filters });
-		dispatchEvent(applyEvent);
+		console.log('Filtros aplicados:', filters); // Verifica os filtros aplicados
 	}
 
 	// Função para resetar filtros e recarregar a tabela
 	function resetFilters() {
 		filters = {}; // Reseta os filtros
-		// Dispara um evento personalizado para resetar a tabela
-		const resetEvent = new CustomEvent('resetFilters');
-		dispatchEvent(resetEvent);
+		console.log('Filtros resetados');
 	}
-
-	// Carrega as filiais no IndexedDB ao carregar a página
-	onMount(async () => {
-		await fetchAndLoadData(); // Chama a função para buscar e salvar as filiais
-	});
 </script>
 
-<!-- Interface da Tabela -->
 <!-- Interface da Tabela -->
 <div class="h-full">
 	<!-- Cabeçalho com o título centralizado -->
@@ -46,23 +34,27 @@
 	<div class="flex flex-col items-end">
 		<div class="w-[95dvw] h-[70dvh] 2xl:h-[80dvh]">
 			<div class="w-full flex justify-end pb-5 pr-1">
-				<div class=" join border border-primary">
+				<div class="join border border-primary">
+					<!-- Componente de Filtros -->
 					<Filtrar {columns} on:applyFilters={applyFilters} on:resetFilters={resetFilters} />
+
+					<!-- Botões de ação -->
 					<button
 						class="tooltip tooltip-info tooltip-bottom btn hover:text-primary"
 						data-tip="Incluir Nota Manual"
 					>
 						<a href="/lancamento-notas/incluir"><IconPencilUp /></a>
 					</button>
-					<!-- Componente de Filtros -->
 
 					<button
 						class="tooltip tooltip-info tooltip-bottom btn hover:text-primary"
 						data-tip="Importar via XML"
-						><a href="/lancamento-notas/xml"> <IconFileTypeXml /></a>
+					>
+						<a href="/lancamento-notas/xml"><IconFileTypeXml /></a>
 					</button>
 				</div>
 			</div>
+
 			<!-- Componente da Tabela -->
 			<Table {columns} {endpoint} {filters} {sortBy} {sortOrder} />
 		</div>

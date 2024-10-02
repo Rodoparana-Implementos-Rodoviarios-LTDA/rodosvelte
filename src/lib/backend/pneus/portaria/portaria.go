@@ -9,7 +9,6 @@ import (
 	"time"
 )
 
-
 // ===================
 // VARIAVEIS GLOBAIS
 // ===================
@@ -27,8 +26,8 @@ var (
 // ===================
 
 type MovimentoPortaria struct {
-	Filial, NF, Cliente, Produto, TipoMov, DataHora, Responsavel, Placa, Observacao string
-	Saldo, Rec                                                                      int
+	Filial, NF, Cliente, Produto, TipoMov, DataHora, Responsavel, Placa, Observacao, Seq string
+	Saldo                                                                                int
 }
 
 type RawMovimentoPortaria struct {
@@ -49,7 +48,7 @@ type RawMovimentoPortaria struct {
 	Placa         string `json:"Z08_PLACA"`
 	Observacao    string `json:"Z08_OBSERV"`
 	Saldo         int    `json:"SALDO"`
-	Seq           int    `json:"Z08"`
+	Seq           string `json:"Z08_NUMSEQ"`
 }
 
 // ===================
@@ -171,7 +170,7 @@ func processMovimentosPortaria(rawMovimentos []RawMovimentoPortaria) []Movimento
 			Responsavel: utils.TrimString(raw.Responsavel),
 			Placa:       utils.TrimString(raw.Placa),
 			Observacao:  utils.TrimString(raw.Observacao),
-			Rec:         raw.Rec,
+			Seq:         raw.Seq,
 			Saldo:       raw.Saldo,
 		}
 		processed = append(processed, movimento)

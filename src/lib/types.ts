@@ -56,7 +56,7 @@ export interface Column<T> {
 	cell?: (row: T) => any;
 	component?: any;
 	props?: (row: T) => Record<string, any>;
-	isFilterable?: boolean; // Agora isFilterable é sempre booleano
+	isFilterable: boolean;
 	class?: string;
 	condition?: (row: T) => boolean;
 }

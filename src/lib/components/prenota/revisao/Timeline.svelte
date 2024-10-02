@@ -6,7 +6,7 @@
 		IconExclamationCircleFilled,
 		IconClockFilled
 	} from '@tabler/icons-svelte';
-	import { getData, saveData } from '$lib/services/idb';
+	import { getOptionsData, saveOptionsData } from '$lib/services/idb';
 	import type { Revisao } from '$lib/types/revisao';
 
 	// Recebe 'rec' e 'status' como props
@@ -20,7 +20,7 @@
 	async function fetchRevisaoData() {
 		try {
 			// Verifica se os dados já estão armazenados no IndexedDB para o 'rec' correto
-			const cachedData = await getData(rec);
+			const cachedData = await getOptionsData('historicoRevisoes', rec.toString());
 
 			if (cachedData) {
 				// Se já existir, carrega os dados do IndexedDB
@@ -32,7 +32,7 @@
 				const response = await fetch('http://protheus-app:8400/rest/reidoapsdu/getHistorico', {
 					method: 'GET',
 					headers: {
-						RECSF1: rec, // Passa o 'rec' diretamente como header
+						RECSF1: rec.toString(), // Passa o 'rec' diretamente como header
 						'Content-Type': 'application/json'
 					}
 				});
@@ -44,8 +44,8 @@
 				const data: Revisao[] = await response.json();
 				eventos = data;
 
-				// Salva os dados no IndexedDB
-				await saveData(rec, eventos);
+				// Salva os dados no IndexedDB na tabela 'historicoRevisoes'
+				await saveOptionsData('historicoRevisoes', rec.toString(), eventos);
 
 				console.log(`Dados obtidos da API para o rec ${rec}:`, eventos);
 				processEventos(eventos);

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { IconFilter } from '@tabler/icons-svelte';
 	import { createEventDispatcher } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 
 	export let columns: { header: string; accessorKey: string; isFilterable: boolean }[] = [];
 
@@ -15,8 +16,7 @@
 
 	// Função que aplica os filtros e envia os dados para o componente pai
 	function applyFilters() {
-		console.log('Filtros aplicados:', filters); // Verifica quais filtros foram aplicados
-		dispatch('applyFilters', filters); // Emite os filtros para o componente pai
+		dispatch('applyFilters', filters);
 		closeDrawer();
 	}
 
@@ -34,43 +34,63 @@
 			drawerInput.checked = false;
 		}
 	}
+
+	// Fechar com "ESC" usando a API do DaisyUI
+	function handleEscKey(event: KeyboardEvent) {
+		if (event.key === 'Escape') {
+			closeDrawer();
+		}
+	}
+
+	onMount(() => {
+		document.addEventListener('keydown', handleEscKey);
+	});
+
+	onDestroy(() => {
+		document.removeEventListener('keydown', handleEscKey);
+	});
 </script>
 
-<!-- Botão que abre o drawer -->
-<button class="tooltip tooltip-info tooltip-bottom btn hover:text-primary" data-tip="Filtrar dados">
-	<IconFilter class="h-6 w-6" />
-</button>
-<div class="flex justify-center items-center">
-	<!-- Drawer da DaisyUI -->
-	<div class="drawer drawer-end">
-		<input id="filter-drawer" type="checkbox" class="drawer-toggle" />
-		<div class="drawer-side">
-			<label for="filter-drawer" class="drawer-overlay"></label>
-			<ul class="menu bg-base-200 text-base-content min-h-full w-96 p-4">
-				<!-- Exibe apenas as colunas que são filtráveis -->
-				{#each columns as column}
-					{#if column.isFilterable}
-						<li class="px-5">
-							<input
-								type="text"
-								placeholder={`Filtrar ${column.header}`}
-								class="input input-bordered w-full my-2"
-								on:input={(e) => handleInputChange(column.accessorKey, e)}
-							/>
-						</li>
-					{/if}
-				{/each}
+<!-- DaisyUI Drawer -->
+<div class="drawer drawer-end">
+	<input id="filter-drawer" type="checkbox" class="drawer-toggle" />
+	<div class="drawer-content">
+		<!-- Botão que abre o drawer -->
+		<label
+			for="filter-drawer"
+			class="tooltip tooltip-info tooltip-bottom btn drawer-button hover:text-primary flex justify-center items-center"
+			data-tip="Filtrar dados"
+		>
+			<IconFilter class="h-6 w-6" />
+		</label>
+	</div>
 
-				<div class="flex gap-2">
-					<button class="btn btn-outline w-fit m-5" on:click={resetFilters}>
-						Reiniciar Filtros
-					</button>
-					<button class="btn btn-primary w-fit m-5" on:click={applyFilters}>
-						Aplicar Filtros
-					</button>
-				</div>
-			</ul>
-		</div>
+	<div class="drawer-side">
+		<label for="filter-drawer" class="drawer-overlay"></label>
+		<ul class="menu bg-base-200 text-base-content min-h-full w-96 p-4">
+			<!-- Exibe apenas as colunas que são filtráveis -->
+			{#each columns as column}
+				{#if column.isFilterable}
+					<li class="px-5">
+						<input
+							type="text"
+							placeholder={`Filtrar ${column.header}`}
+							class="input input-bordered w-full my-2"
+							on:input={(e) => handleInputChange(column.accessorKey, e)}
+						/>
+					</li>
+				{/if}
+			{/each}
+
+			<div class="flex gap-2">
+				<button class="btn btn-outline w-fit m-5" on:click={resetFilters}>
+					Reiniciar Filtros
+				</button>
+				<button class="btn btn-primary w-fit m-5" on:click={applyFilters}>
+					Aplicar Filtros
+				</button>
+			</div>
+		</ul>
 	</div>
 </div>
 
