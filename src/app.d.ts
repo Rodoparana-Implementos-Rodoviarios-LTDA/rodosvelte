@@ -26,7 +26,7 @@ export interface Condicao {
 	E4_DESCRI: string;
 }
 
-export interface CentoCusto {
+export interface CentroCusto {
 	CTT_CUSTO: string;
 	CTT_DESC01: string;
 	DESC: string;

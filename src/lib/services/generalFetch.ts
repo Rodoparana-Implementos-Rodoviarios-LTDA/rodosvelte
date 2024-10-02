@@ -1,110 +1,85 @@
-// src/lib/fetchAndLoadData.ts
-import type { Filial, UnidadeMedida, Condicao, CentoCusto, ApiResponse } from '../../app';
-import { getData, saveData } from './idb'; // Ajuste o caminho conforme necessário
+import { saveOptionsData } from './idb';
 
-export async function fetchAndLoadData(): Promise<{
-	Filiais: Filial[];
-	UnidadeMedida: UnidadeMedida[];
-	Condicoes: Condicao[];
-	centroCusto: CentoCusto[];
-	tipoDeNFOptions: { label: string; value: string }[];
-	prioridadeOptions: { label: string; value: string }[];
-}> {
-	const isClient = typeof window !== 'undefined';
-	if (!isClient) {
-		throw new Error('IndexedDB não está disponível no server-side.');
-	}
-	const tipoDeNFOptions = [
-		{ label: 'Revenda', value: 'revenda' },
-		{ label: 'Despesa/Imobilizado', value: 'despesa_imobilizado' },
-		{ label: 'Matéria Prima', value: 'materia_prima' },
-		{ label: 'Collection', value: 'collection' }
-	];
+// Arrays estáticos que serão salvos no IndexedDB
+const tipoDeNFOptions = [
+	{ label: 'Revenda', value: 'revenda' },
+	{ label: 'Despesa/Imobilizado', value: 'despesa_imobilizado' },
+	{ label: 'Matéria Prima', value: 'materia_prima' },
+	{ label: 'Collection', value: 'collection' }
+];
 
-	const prioridadeOptions = [
-		{ label: 'Baixa', value: 'baixa' },
-		{ label: 'Média', value: 'media' },
-		{ label: 'Alta', value: 'alta' }
-	];
+const prioridadeOptions = [
+	{ label: 'Baixa', value: 'baixa' },
+	{ label: 'Média', value: 'media' },
+	{ label: 'Alta', value: 'alta' }
+];
+
+// Função para salvar os arrays estáticos no IndexedDB
+async function saveStaticOptions(): Promise<void> {
 	try {
-		const [filiais, unidadeMedida, condicoes, centroCusto, tipoNFOptions, prioridadeOptions] =
-			await Promise.all([
-				getData('Filiais'),
-				getData('UnidadeMedida'),
-				getData('Condicoes'),
-				getData('centroCusto'),
-				getData('tipoDeNFOptions'),
-				getData('prioridadeOptions')
-			]);
-
-		// Verifica se todos os dados estão presentes no IndexedDB
-		if (
-			filiais &&
-			unidadeMedida &&
-			condicoes &&
-			centroCusto &&
-			tipoNFOptions &&
-			prioridadeOptions
-		) {
-			console.log('Dados recuperados do IndexedDB.');
-			console.log('Filiais:', filiais);
-			console.log('UnidadeMedida:', unidadeMedida);
-			console.log('Condicoes:', condicoes);
-			console.log('centroCusto:', centroCusto);
-			console.log('tipoDeNFOptions:', tipoNFOptions);
-			console.log('prioridadeOptions:', prioridadeOptions);
-
-			return {
-				Filiais: filiais as Filial[],
-				UnidadeMedida: unidadeMedida as UnidadeMedida[],
-				Condicoes: condicoes as Condicao[],
-				centroCusto: centroCusto as CentoCusto[],
-				tipoDeNFOptions: tipoNFOptions as { label: string; value: string }[],
-				prioridadeOptions: prioridadeOptions as { label: string; value: string }[]
-			};
-		} else {
-			console.log('Dados ausentes no IndexedDB. Buscando da API...');
-			// Faz o fetch dos dados da API
-			const response = await fetch(
-				'http://protheus-app:8400/rest/reidoapsdu/consultar/cargaInicio'
-			);
-			if (!response.ok) {
-				throw new Error(`Erro na requisição: ${response.statusText}`);
-			}
-
-			const data: ApiResponse = await response.json();
-
-			const mappedData = {
-				Filiais: data.Filiais,
-				UnidadeMedida: data.UnidadeMedida,
-				Condicoes: data.Condicoes,
-				centroCusto: data.CentoCusto,
-				tipoDeNFOptions,
-				prioridadeOptions
-			};
-
-			// Armazena cada conjunto de dados no IndexedDB
-			await Promise.all([
-				saveData('Filiais', mappedData.Filiais),
-				saveData('UnidadeMedida', mappedData.UnidadeMedida),
-				saveData('Condicoes', mappedData.Condicoes),
-				saveData('centroCusto', mappedData.centroCusto),
-				saveData('tipoDeNFOptions', mappedData.tipoDeNFOptions),
-				saveData('prioridadeOptions', mappedData.prioridadeOptions)
-			]);
-
-			console.log('Dados armazenados no IndexedDB.');
-			console.log('Filiais salvas:', mappedData.Filiais);
-			console.log('UnidadeMedida salvas:', mappedData.UnidadeMedida);
-			console.log('Condicoes salvas:', mappedData.Condicoes);
-			console.log('centroCusto salvas:', mappedData.centroCusto);
-			console.log('tipoDeNFOptions salvas:', mappedData.tipoDeNFOptions);
-			console.log('prioridadeOptions salvas:', mappedData.prioridadeOptions);
-
-			return mappedData;
-		}
+		await saveOptionsData('tipoDeNFOptions', 'tipoDeNF', tipoDeNFOptions); // Atualizado com a chave e tabela
+		await saveOptionsData('prioridadeOptions', 'prioridade', prioridadeOptions); // Atualizado com a chave e tabela
+		console.log('Dados estáticos salvos com sucesso no IndexedDB.');
 	} catch (error) {
-		console.error('Erro ao carregar os dados:', error);
-		throw error;
+		console.error('Erro ao salvar dados estáticos no IndexedDB:', error);
 	}
 }
+
+// Função para buscar dados da API nova e salvar no IndexedDB
+async function fetchAndSaveCargaInicio(): Promise<void> {
+	try {
+		const myHeaders = new Headers();
+		myHeaders.append('Content-Type', 'application/json');
+
+		const requestOptions: RequestInit = {
+			method: 'GET',
+			headers: myHeaders,
+			redirect: 'follow'
+		};
+
+		const response = await fetch(
+			'http://172.16.99.174:8400/rest/reidoapsdu/consultar/cargaInicio',
+			requestOptions
+		);
+
+		if (!response.ok) {
+			throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
+		}
+
+		const data = await response.json();
+
+		// Salva cada seção dos dados no IndexedDB
+		if (data.Filiais) {
+			await saveOptionsData('filiaisOptions', 'filiais', data.Filiais); // Atualizado com a chave e tabela
+			console.log('Dados de Filiais salvos com sucesso no IndexedDB.');
+		}
+
+		if (data.UnidadeMedida) {
+			await saveOptionsData('unidadeMedidaOptions', 'unidadeMedida', data.UnidadeMedida); // Atualizado com a chave e tabela
+			console.log('Dados de Unidade de Medida salvos com sucesso no IndexedDB.');
+		}
+
+		if (data.Condicoes) {
+			await saveOptionsData('condicoesOptions', 'condicoes', data.Condicoes); // Atualizado com a chave e tabela
+			console.log('Dados de Condições salvos com sucesso no IndexedDB.');
+		}
+
+		if (data.CentoCusto) {
+			await saveOptionsData('centroCustoOptions', 'centroCusto', data.CentoCusto); // Atualizado com a chave e tabela
+			console.log('Dados de Centro de Custo salvos com sucesso no IndexedDB.');
+		}
+	} catch (error) {
+		console.error('Erro ao buscar ou salvar dados de cargaInicio:', error);
+	}
+}
+
+// Função principal que executa as outras funções
+async function initializeData(): Promise<void> {
+	await saveStaticOptions(); // Salva os dados estáticos
+	await fetchAndSaveCargaInicio(); // Busca e salva os dados da nova API
+}
+
+// Chama a função de inicialização ao carregar o módulo
+initializeData().catch((error) => console.error('Erro ao inicializar os dados:', error));
+
+export { initializeData };

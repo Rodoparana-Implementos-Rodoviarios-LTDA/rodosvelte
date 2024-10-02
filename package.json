@@ -41,8 +41,11 @@
 	"dependencies": {
 		"@tabler/icons-svelte": "^3.14.0",
 		"date-fns": "^3.6.0",
+		"dexie": "^4.0.8",
+		"dexie-observable": "^4.0.1-beta.13",
 		"flatpickr": "^4.6.13",
 		"idb": "^8.0.0",
-		"radix-svelte": "^0.9.0"
+		"radix-svelte": "^0.9.0",
+		"svelte-french-toast": "^1.2.0"
 	}
 }

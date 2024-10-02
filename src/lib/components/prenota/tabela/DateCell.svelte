@@ -14,13 +14,6 @@
   let inclusionTextClass = 'text-lime-600';
   let dueTextClass = 'text-lime-600';
 
-  // Configurações do HoverCard
-  let contentSide = "bottom";
-  let contentSideOffset = 10;
-  let contentAlign = "center";
-  let contentArrowPadding = 5;
-  let contentAvoidCollisions = true;
-
   // Cálculo da diferença de dias e ajuste das classes
   onMount(() => {
     try {

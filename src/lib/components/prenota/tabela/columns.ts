@@ -6,7 +6,7 @@ import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import TipoBadge from './TipoBadge.svelte';
 import ActionButton from '../revisao/ActionButton.svelte';
-import CurrencyFormatter from './CurrencyFormatter.svelte';
+import CurrencyFormatter from '../../ui/tabela/CurrencyFormatter.svelte';
 
 export const columns: Column<PreNota>[] = [
 	{

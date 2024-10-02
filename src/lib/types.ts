@@ -2,49 +2,52 @@
 
 // src/lib/types.ts
 export interface DetalhesXML {
-    numero: string;
-    serie: string;
-    dataEmissao: string;
-    valorTotalDaNota: string;
-    nomeEmitente: string;
-    cnpjEmitente: string;
-    ufEmitente: string;
-    nomeDestinatario: string;
-    cnpjDestinatario: string;
-    ufDestinatario: string;
-    informacoesAdicionais: string;
-    itens: Item[];
-    filialName?: string; // Nome da filial após triangulação
+	numero: string;
+	serie: string;
+	dataEmissao: string;
+	valorTotalDaNota: string;
+	nomeEmitente: string;
+	cnpjEmitente: string;
+	ufEmitente: string;
+	nomeDestinatario: string;
+	cnpjDestinatario: string;
+	ufDestinatario: string;
+	informacoesAdicionais: string;
+	itens: Item[];
+	filialName?: string; // Nome da filial após triangulação
 }
-
+export interface Condicao {
+	E4_CODIGO: string; // Código da condição
+	Desc: string; // Descrição da condição
+}
 export interface Item {
-    codProduto: string;
-    descProduto: string;
-    ncmsh: string;
-    cst: string;
-    origem: string;
-    cfop: string;
-    unidade: string;
-    quantidade: string;
-    valorUnitario: string;
-    valorTotal: string;
-    bcIcms: string;
-    valorIcms: string;
-    valorIpi: string;
-    aliqIcms: string;
-    aliqIpi: string;
+	codProduto: string;
+	descProduto: string;
+	ncmsh: string;
+	cst: string;
+	origem: string;
+	cfop: string;
+	unidade: string;
+	quantidade: string;
+	valorUnitario: string;
+	valorTotal: string;
+	bcIcms: string;
+	valorIcms: string;
+	valorIpi: string;
+	aliqIcms: string;
+	aliqIpi: string;
 }
 
 export interface Filial {
-    numero: string;
-    filial: string;
-    cnpjFilial: string;
+	numero: string;
+	filial: string;
+	cnpjFilial: string;
 }
 // src/lib/types.ts
 export interface ProdutoProtheus {
-    codigo: string;
-    descricao: string;
-    // Adicione outros campos relevantes conforme necessário
+	codigo: string;
+	descricao: string;
+	// Adicione outros campos relevantes conforme necessário
 }
 
 export interface Column<T> {
@@ -53,8 +56,9 @@ export interface Column<T> {
 	cell?: (row: T) => any;
 	component?: any;
 	props?: (row: T) => Record<string, any>;
-	isFilterable: boolean; // Agora isFilterable é sempre booleano
-	class?:string;
+	isFilterable?: boolean; // Agora isFilterable é sempre booleano
+	class?: string;
+	condition?: (row: T) => boolean;
 }
 
 // Interface genérica para dados da tabela
@@ -92,6 +96,22 @@ export interface PreNota {
 	actions?: () => void; // Ações como função opcional
 }
 
+export interface XML {
+	codProduto: string;
+	descProduto: string;
+	ncmsh: string;
+	cst: string;
+	origem: string;
+	cfop: string;
+	unidade: string;
+	quantidade: string;
+	valorUnitario: string;
+	valorTotal: string;
+	valorIcms: string;
+	aliqIcms: string;
+	valorIpi: string;
+	aliqIpi: string;
+}
 
 export interface HistoricoData {
 	Filial: string;
@@ -106,10 +126,6 @@ export interface HistoricoData {
 	Saldo: number;
 	actions?: () => void; // Função de ação personalizada
 }
-<<<<<<< HEAD
-// Coluna genérica usada para a tabela
-
-=======
 
 export interface PreNotaTabela {
 	'X-Filter-Filial': string;
@@ -126,4 +142,3 @@ export interface PreNotaTabela {
 	'X-Filter-Obs': string;
 	'X-Filter-Rec': string;
 }
->>>>>>> fe242afe9d703777fb5b91b9ff3a57e2868c792b

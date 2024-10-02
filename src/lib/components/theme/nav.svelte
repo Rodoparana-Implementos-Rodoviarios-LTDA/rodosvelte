@@ -8,7 +8,9 @@
 		IconPlus,
 		IconUpload,
 		IconShieldCheck,
-		IconCategory
+		IconCategory,
+		IconBulldozer,
+		IconTruck
 	} from '@tabler/icons-svelte';
 	import { goto } from '$app/navigation';
 	import { deleteData } from '$lib/services/idb';
@@ -22,6 +24,7 @@
 
 	interface MenuSection {
 		title: string;
+		link?: string;
 		items: MenuItem[];
 	}
 
@@ -39,6 +42,21 @@
 			items: [
 				{ name: 'Borracharia', icon: IconDashboard, link: '/controle-itens' },
 				{ name: 'Conferência', icon: IconShieldCheck, link: '/controle-itens/conferencia' }
+			]
+		},
+		{
+			title: 'Assinatura de Email',
+			items: [
+				{
+					name: 'Timber',
+					icon: IconBulldozer,
+					link: '/assinatura/timber'
+				},
+				{
+					name: 'Rodoparaná',
+					icon: IconTruck,
+					link: '/assinatura/rodo'
+				}
 			]
 		},
 		{
