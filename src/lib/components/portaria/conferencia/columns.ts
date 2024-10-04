@@ -30,6 +30,7 @@ export const columns: Column<HistoricoData>[] = [
     accessorKey: 'DataHora',
     header: 'Data/Hora',
     cell: (row: HistoricoData) => row.DataHora,
+    isFilterable: true
   },
   {
     accessorKey: 'Responsavel',
@@ -47,22 +48,25 @@ export const columns: Column<HistoricoData>[] = [
     accessorKey: 'Observacao',  // Coluna para observações
     header: 'Observação',
     cell: (row: HistoricoData) => row.Observacao || 'Sem Observação',
-    isFilterable: true // Permitir filtro na coluna de observação
+    isFilterable: false
   },
   {
     accessorKey: 'Saldo',
     header: 'Saldo',
-    cell: (row: HistoricoData) => row.Saldo.toFixed(2),
+    cell: (row: HistoricoData) => row.Saldo.toString(),
+    isFilterable: false
   },
   {
     accessorKey: 'actions',
     header: 'Ações',
     component: Action,  // Usa o componente Action para ações
     props: (row: HistoricoData) => ({
-      documento: row.NF,  // Passa o NF (nota fiscal)
-      produto: row.Produto,  // Passa o Produto
-      saldoConferencia: row.Saldo,  // Passa o saldo máximo
-      responsavel: row.Responsavel
+      documento: row.NF,            // Passa o NF (nota fiscal)
+      produto: row.Produto,         // Passa o Produto
+      saldoConferencia: row.Saldo,  // Passa o saldo
+      responsavel: row.Responsavel,
+      filial: row.Filial,           // Adicionado para uso no componente Action
+      cliente: row.Cliente          // Adicionado para uso no componente Action
     }),
     isFilterable: false,  // Ações não são filtráveis
   },

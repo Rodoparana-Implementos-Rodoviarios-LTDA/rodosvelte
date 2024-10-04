@@ -8,11 +8,12 @@
 		Plus,
 		Upload,
 		ShieldCheck,
-		Category
+		Category,
+		
 	} from 'tabler-icons-svelte';
 	import { goto } from '$app/navigation';
 	import { deleteData } from '$lib/services/idb';
-	import { IconTruckReturn } from '@tabler/icons-svelte';
+	import { IconTruckReturn, IconClockCheck } from '@tabler/icons-svelte';
 	interface MenuItem {
 		name: string;
 		icon: typeof Dashboard | typeof Phone;
@@ -38,7 +39,8 @@
 			title: 'Controle de Itens',
 			items: [
 				{ name: 'Borracharia', icon: Dashboard, link: '/controle-itens' },
-				{ name: 'Conferência', icon: ShieldCheck, link: '/controle-itens/conferencia' }
+				{ name: 'Conferência', icon: IconClockCheck, link: '/controle-itens/conferencia' },
+				{ name: 'Conferidos', icon: ShieldCheck, link:'/controle-itens/conferidos'}
 			]
 		},
 		{

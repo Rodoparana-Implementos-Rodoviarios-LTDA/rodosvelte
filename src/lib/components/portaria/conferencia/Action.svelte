@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 	import { circOut } from 'svelte/easing';
-	import { IconFolderSearch } from '@tabler/icons-svelte';
+	import { IconClockSearch } from '@tabler/icons-svelte';
 	import Conferir from './Conferir.svelte';  // Corrige o caminho para Conferir.svelte
 	import { onMount } from 'svelte';
 
@@ -9,6 +9,9 @@
 	export let produto: string;
 	export let saldoConferencia: number;
 	export let responsavel: string;
+	export let filial: string;
+	export let cliente: string;
+
 	let drawerVisible = false;  // Controla a visibilidade do drawer
 
 	// Função para fechar o Drawer ao clicar fora
@@ -35,7 +38,7 @@
 
 <!-- Botão que abre o Drawer -->
 <button class="btn btn-primary" on:click={() => (drawerVisible = true)}>
-	<IconFolderSearch />
+	<IconClockSearch />
 	<span class="sr-only">Conferência</span>
 </button>
 
@@ -47,7 +50,14 @@
 	<!-- Conteúdo do Drawer -->
 	<div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
 		<div class="w-full h-screen bg-base-100 text-info p-8">
-			<Conferir {documento} {responsavel} {produto} {saldoConferencia} />
+			<Conferir
+				{documento}
+				{responsavel}
+				{produto}
+				{saldoConferencia}
+				{filial}
+				{cliente}
+			/>
 		</div>
 	</div>
 {/if}
