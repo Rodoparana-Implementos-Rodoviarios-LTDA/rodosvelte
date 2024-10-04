@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { getData } from '$lib/services/idb'; // Função para buscar dados no IndexedDB
+	import { getOptionsData } from '$lib/services/idb'; // Função para buscar dados no IndexedDB
 	import { HoverCard } from 'radix-svelte';
 
 	export let numeroFilial: string; // O número da filial exibido na tabela
@@ -10,9 +10,10 @@
 	// Função para buscar a filial no IndexedDB
 	async function fetchFilial() {
 		try {
-			const filiais = await getData('filiais'); // Busca as filiais no IndexedDB
-			if (filiais) {
-				const filialEncontrada = filiais.find(
+			// Busca os dados da tabela 'filiaisOptions' usando a chave 'filiais'
+			const filiais = await getOptionsData('filiaisOptions', 'filiais');
+			if (filiais && filiais.data) {
+				const filialEncontrada = filiais.data.find(
 					(filial: any) => filial.numero.trim() === numeroFilial.trim()
 				);
 				filialInfo = filialEncontrada ? filialEncontrada.filial : 'Filial não encontrada';
@@ -34,7 +35,7 @@
 <!-- Componente Radix-Svelte HoverCard -->
 <HoverCard.Root openDelay={30} closeDelay={30}>
 	<HoverCard.Trigger asChild>
-		{numeroFilial.trim()}
+		<span>{numeroFilial.trim()}</span>
 	</HoverCard.Trigger>
 
 	<!-- Conteúdo do HoverCard exibindo o nome da filial -->

@@ -1,4 +1,4 @@
-import type { Column, PreNota } from '$lib/types/tableTypes';
+import type { Column, PreNota } from '$lib/types';
 import UserAvatar from '$lib/components/ui/UserAvatar.svelte';
 
 import fililalHover from '$lib/components/ui/fililalHover.svelte';
@@ -6,7 +6,7 @@ import StatusIcon from './StatusIcon.svelte';
 import DateCell from './DateCell.svelte';
 import TipoBadge from './TipoBadge.svelte';
 import ActionButton from '../revisao/ActionButton.svelte';
-import CurrencyFormatter from './CurrencyFormatter.svelte';
+import CurrencyFormatter from '../../ui/tabela/CurrencyFormatter.svelte';
 
 export const columns: Column<PreNota>[] = [
 	{

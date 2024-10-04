@@ -10,94 +10,168 @@ import (
 )
 
 // ===================
-// VARIÁVEIS GLOBAIS
+// VARIAVEIS GLOBAIS
 // ===================
-
-// Cache para armazenar os dados dos movimentos da portaria.
-var movimentosPortariaCache []MovimentoPortaria
-var mutex sync.Mutex // Controla o acesso concorrente ao cache.
+var (
+	movimentosPortariaCache []MovimentoPortaria
+	cacheTimestamp          time.Time
+	cacheDuration           = 1 * time.Hour
+	mutex                   sync.Mutex
+	cacheInitialized        bool
+	cacheUpdating           bool
+)
 
 // ===================
 // ESTRUTURAS DE DADOS
 // ===================
 
-// MovimentoPortaria representa os dados processados do movimento.
 type MovimentoPortaria struct {
-	Filial, NF, Vendedor, Cliente, Produto, DataHora, Responsavel, Placa, Observacao string
-	Saldo                                                                            int
+	Filial, NF, Cliente, Produto, TipoMov, DataHora, Responsavel, Placa, Observacao, Seq string
+	Saldo                                                                                int
 }
 
-// RawMovimentoPortaria mapeia os dados brutos recebidos do endpoint.
 type RawMovimentoPortaria struct {
-	Filial, Documento, Serie, Cliente, Loja, ClienteNome, Vendedor, VendedorNome,
-	Codigo, Item, Descricao, Data, Hora, Responsavel, Placa, Observacao string
-	Saldo int
+	Filial        string `json:"Z08_FILIAL"`
+	Origem        string `json:"Z08_ORIGEM"`
+	Documento     string `json:"Z08_DOC"`
+	Serie         string `json:"Z08_SERIE"`
+	Cliente       string `json:"Z08_CLIFOR"`
+	Loja          string `json:"Z08_LOJA"`
+	ClienteNome   string `json:"A1_NOME"`
+	Codigo        string `json:"Z08_COD"`
+	Item          string `json:"Z08_ITEM"`
+	Descricao     string `json:"B1_DESC"`
+	TipoMovimento string `json:"Z08_TIPMOV"`
+	Data          string `json:"Z08_DATA"`
+	Hora          string `json:"Z08_HORA"`
+	Responsavel   string `json:"Z08_RESPON"`
+	Placa         string `json:"Z08_PLACA"`
+	Observacao    string `json:"Z08_OBSERV"`
+	Saldo         int    `json:"SALDO"`
+	Seq           string `json:"Z08_NUMSEQ"`
 }
 
 // ===================
-// REQUISIÇÃO E CACHE
+// REQUISICAO E CACHE
 // ===================
 
-// StartFetchingMovimentosPortaria inicia a atualização periódica do cache de movimentos da portaria.
-func StartFetchingMovimentosPortaria() {
-	go func() {
-		for {
-			log.Println("Buscando movimentos da portaria...")
-			movimentos, err := utils.FetchFromEndpoint[RawMovimentoPortaria]("http://protheus-vm:9010/rest/MovPortaria/MovimentosPorNF", nil)
-			if err != nil {
-				log.Printf("Erro ao buscar movimentos da portaria: %v", err)
-				continue
-			}
+func InitializeCache() {
+	log.Println("Carregando dados iniciais de portaria...")
+	fetchMovimentosPortariaData()
+}
 
-			mutex.Lock()
-			movimentosPortariaCache = processMovimentosPortaria(movimentos)
-			mutex.Unlock()
+func fetchMovimentosPortariaData() {
+	mutex.Lock()
 
-			log.Println("Cache de movimentos da portaria atualizado com sucesso!")
-			time.Sleep(1 * time.Minute) // Atualiza o cache a cada minuto
-		}
-	}()
+	if cacheUpdating {
+		log.Println("Atualizacao do cache de portaria ja esta em andamento, aguardando...")
+		mutex.Unlock()
+		return
+	}
+
+	cacheUpdating = true
+	mutex.Unlock()
+
+	movimentos, err := utils.FetchFromEndpoint[RawMovimentoPortaria]("http://protheus-vm:9010/rest/MovPortaria/MovimentosPorNF", nil)
+	if err != nil {
+		log.Printf("Erro ao buscar movimentos da portaria: %v", err)
+		mutex.Lock()
+		cacheUpdating = false
+		mutex.Unlock()
+		return
+	}
+
+	mutex.Lock()
+	movimentosPortariaCache = processMovimentosPortaria(movimentos)
+	cacheTimestamp = time.Now()
+	cacheInitialized = true
+	cacheUpdating = false
+	mutex.Unlock()
+
+	log.Println("Cache de movimentos da portaria atualizado com sucesso!")
 }
 
 // ===================
 // HANDLER HTTP
 // ===================
 
-// GetMovimentosPortaria responde com os dados de movimentos da portaria atuais em cache.
 func GetMovimentosPortaria(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	mutex.Lock()
-	defer mutex.Unlock()
 
-	if len(movimentosPortariaCache) == 0 {
-		http.Error(w, "Nenhum movimento disponível.", http.StatusNotFound)
-		return
+	if !cacheInitialized || len(movimentosPortariaCache) == 0 || time.Since(cacheTimestamp) > cacheDuration {
+		log.Println("Cache de portaria expirado ou vazio. Carregando novos dados em background...")
+
+		go fetchMovimentosPortariaData()
 	}
 
-	// Retorna os dados diretamente do cache, sem filtros ou ordenação.
-	json.NewEncoder(w).Encode(movimentosPortariaCache)
+	filterableColumns := []string{"Filial", "NF", "Cliente", "Produto", "DataHora", "TipoMov"}
+	filteredMovimentos := applyFilters(movimentosPortariaCache, r, filterableColumns)
+
+	if len(filteredMovimentos) == 0 {
+		log.Println("Dados nao encontrados no cache, buscando no webservice...")
+		mutex.Unlock()
+		fetchMovimentosPortariaData()
+		mutex.Lock()
+		filteredMovimentos = applyFilters(movimentosPortariaCache, r, filterableColumns)
+		if len(filteredMovimentos) == 0 {
+			mutex.Unlock()
+			http.Error(w, "Nenhum movimento disponivel.", http.StatusNotFound)
+			return
+		}
+	}
+
+	sortedMovimentos := applySorting(filteredMovimentos, r)
+	paginatedMovimentos := utils.Paginate(sortedMovimentos, r)
+	mutex.Unlock()
+	if err := json.NewEncoder(w).Encode(paginatedMovimentos); err != nil {
+		http.Error(w, "Erro ao gerar a resposta.", http.StatusInternalServerError)
+	}
+}
+
+// ===================
+// FUNCOES AUXILIARES
+// ===================
+
+func applyFilters(movimentos []MovimentoPortaria, r *http.Request, filterableColumns []string) []MovimentoPortaria {
+	return utils.FilterData(movimentos, r, filterableColumns)
+}
+
+func applySorting(movimentos []MovimentoPortaria, r *http.Request) []MovimentoPortaria {
+
+	sortBy := r.Header.Get("X-Sort-By")
+	sortOrder := r.Header.Get("X-Sort-Order")
+
+	if sortBy == "" {
+		sortBy = "DataHora"
+	}
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+
+	return utils.SortByColumn(movimentos, sortBy, sortOrder)
 }
 
 // ===================
 // PROCESSAMENTO DOS DADOS
 // ===================
 
-// processMovimentosPortaria converte os dados brutos em dados processados para exibição.
 func processMovimentosPortaria(rawMovimentos []RawMovimentoPortaria) []MovimentoPortaria {
 	var processed []MovimentoPortaria
 	for _, raw := range rawMovimentos {
 		movimento := MovimentoPortaria{
 			Filial:      utils.TrimString(raw.Filial),
 			NF:          utils.TrimString(raw.Documento) + " - " + utils.TrimString(raw.Serie),
-			Vendedor:    utils.TrimString(raw.Vendedor) + " - " + utils.TrimString(raw.VendedorNome),
 			Cliente:     utils.TrimString(raw.Cliente) + " - " + utils.TrimString(raw.Loja) + " - " + utils.TrimString(raw.ClienteNome),
 			Produto:     utils.TrimString(raw.Codigo) + " - " + utils.TrimString(raw.Item) + " - " + utils.TrimString(raw.Descricao),
-			Saldo:       raw.Saldo,
+			TipoMov:     utils.MapTipoMovimento(raw.TipoMovimento),
 			DataHora:    utils.FormatDate(utils.TrimString(raw.Data), "20060102", "02/01/2006") + " " + utils.TrimString(raw.Hora),
 			Responsavel: utils.TrimString(raw.Responsavel),
 			Placa:       utils.TrimString(raw.Placa),
 			Observacao:  utils.TrimString(raw.Observacao),
+			Seq:         raw.Seq,
+			Saldo:       raw.Saldo,
 		}
 		processed = append(processed, movimento)
 	}

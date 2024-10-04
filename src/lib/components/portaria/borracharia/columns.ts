@@ -60,4 +60,5 @@ export const columns: Column<borracharia>[] = [
     }),
     isFilterable: false,
   },
+
 ];

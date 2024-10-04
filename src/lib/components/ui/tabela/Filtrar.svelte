@@ -14,22 +14,17 @@
 		filters[columnKey] = target.value;
 	}
 
-	// Função que aplica os filtros e só depois fecha o drawer
+	// Função que aplica os filtros e envia os dados para o componente pai
 	function applyFilters() {
-		// Disparar o evento de filtros primeiro
 		dispatch('applyFilters', filters);
-
-		// Fechar o drawer manualmente após aplicar os filtros
-		setTimeout(() => closeDrawer(), 100); // Delay opcional para garantir aplicação
+		closeDrawer();
 	}
 
 	// Função para resetar os filtros e enviar o evento para o componente pai
 	function resetFilters() {
 		filters = {}; // Limpa os filtros
 		dispatch('resetFilters'); // Emite o evento para o componente pai
-
-		// Fechar o drawer manualmente após resetar os filtros
-		setTimeout(() => closeDrawer(), 100); // Delay opcional
+		closeDrawer();
 	}
 
 	// Função para fechar o drawer
@@ -40,8 +35,7 @@
 		}
 	}
 
-	// Temporariamente comentado para evitar conflito com o Escape
-	/*
+	// Fechar com "ESC" usando a API do DaisyUI
 	function handleEscKey(event: KeyboardEvent) {
 		if (event.key === 'Escape') {
 			closeDrawer();
@@ -55,7 +49,6 @@
 	onDestroy(() => {
 		document.removeEventListener('keydown', handleEscKey);
 	});
-	*/
 </script>
 
 <!-- DaisyUI Drawer -->

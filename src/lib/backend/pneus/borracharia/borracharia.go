@@ -3,6 +3,7 @@ package borracharia
 import (
 	"backend/utils"
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
@@ -10,92 +11,160 @@ import (
 )
 
 // ===================
-// VARIÁVEIS GLOBAIS
+// VARIAVEIS GLOBAIS
 // ===================
-
-// Cache de borracharia para armazenar os dados processados na memória.
-var borrachariaCache []Borracharia
-var mutex sync.Mutex // Controla o acesso ao cache.
+var (
+	borrachariaCache []Borracharia
+	cacheTimestamp   time.Time
+	cacheDuration    = 1 * time.Hour
+	mutex            sync.Mutex
+	cacheInitialized bool
+	cacheUpdating    bool
+)
 
 // ===================
 // ESTRUTURAS DE DADOS
 // ===================
 
-// Borracharia representa a estrutura final dos dados exibidos.
 type Borracharia struct {
-	Filial, NF, Cliente, Vendedor, Produto, Emissao string
-	Saldo                                           int
+	Filial, NF, Vendedor, Cliente, Emissao string
 }
 
-// RawBorracharia mapeia os dados originais recebidos do endpoint.
 type RawBorracharia struct {
-	Filial, Doc, Serie, Cliente, ClienteNome, Vendedor, VendedorDesc,
-	Codigo, Descricao, Emissao string
-	Saldo int
+	Filial       string `json:"F2_FILIAL"`
+	Documento    string `json:"F2_DOC"`
+	Serie        string `json:"F2_SERIE"`
+	Emissao      string `json:"F2_EMISSAO"`
+	Vendedor     string `json:"F2_VEND1"`
+	VendedorNome string `json:"A3_NOME"`
+	Cliente      string `json:"F2_CLIENTE"`
+	Loja         string `json:"F2_LOJA"`
+	ClienteNome  string `json:"A1_NOME"`
 }
 
 // ===================
-// REQUISIÇÃO E CACHE
+// REQUISICAO E CACHE
 // ===================
 
-// StartFetchingBorracharia inicia a atualização periódica do cache de borracharia.
-func StartFetchingBorracharia() {
-	go func() {
-		for {
-			log.Println("Buscando dados de borracharia...")
-			borracharia, err := utils.FetchFromEndpoint[RawBorracharia]("http://protheus-vm:9010/rest/MovPortaria/NFSaidasDisponiveis", nil)
-			if err != nil {
-				log.Printf("Erro ao buscar dados de borracharia: %v", err)
-				continue
-			}
+func InitializeCache() {
+	log.Println("Carregando dados iniciais de borracharia...")
+	fetchBorrachariaData()
+}
 
-			mutex.Lock()
-			borrachariaCache = processBorracharia(borracharia)
-			mutex.Unlock()
+func fetchBorrachariaData() {
+	mutex.Lock()
 
-			log.Println("Cache de borracharia atualizado com sucesso!")
-			time.Sleep(1 * time.Minute) // Atualiza a cada minuto.
-		}
-	}()
+	if cacheUpdating {
+		log.Println("Atualizacao do cache de borracharia ja esta em andamento, aguardando...")
+		mutex.Unlock()
+		return
+	}
+
+	cacheUpdating = true
+	mutex.Unlock()
+
+	resp, err := http.Get("http://protheus-vm:9010/rest/MovPortaria/NFSaidasDisponiveis")
+	if err != nil {
+		log.Printf("Erro ao buscar dados de borracharia: %v", err)
+		mutex.Lock()
+		cacheUpdating = false
+		mutex.Unlock()
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Erro ao ler resposta da API: %v", err)
+		mutex.Lock()
+		cacheUpdating = false
+		mutex.Unlock()
+		return
+	}
+
+	var rawBorracharia []RawBorracharia
+	if err := json.Unmarshal(body, &rawBorracharia); err != nil {
+		log.Printf("Erro ao decodificar JSON da borracharia: %v", err)
+		mutex.Lock()
+		cacheUpdating = false
+		mutex.Unlock()
+		return
+	}
+
+	mutex.Lock()
+	borrachariaCache = processBorracharia(rawBorracharia)
+	cacheTimestamp = time.Now()
+	cacheInitialized = true
+	cacheUpdating = false
+	mutex.Unlock()
+
+	log.Println("Cache de borracharia atualizado com sucesso!")
 }
 
 // ===================
 // HANDLER HTTP
 // ===================
 
-// GetBorracharia responde com os dados de borracharia atuais em cache, sem filtros ou classificação.
 func GetBorracharia(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	mutex.Lock()
-	defer mutex.Unlock()
+	if !cacheInitialized || len(borrachariaCache) == 0 || time.Since(cacheTimestamp) > cacheDuration {
+		log.Println("Cache de borracharia expirado ou vazio. Carregando novos dados em background...")
+		go fetchBorrachariaData()
+	}
 
-	if len(borrachariaCache) == 0 {
-		http.Error(w, "Nenhuma informação de borracharia disponível.", http.StatusNotFound)
+	filterableColumns := []string{"Filial", "NF", "Vendedor", "Cliente", "Emissao"}
+	filteredBorracharia := applyFilters(borrachariaCache, r, filterableColumns)
+
+	if len(filteredBorracharia) == 0 {
+		mutex.Unlock()
+		http.Error(w, "Nenhuma informacao de borracharia disponivel.", http.StatusNotFound)
 		return
 	}
 
-	// Retorna os dados sem filtrar, ordenar ou paginar.
-	json.NewEncoder(w).Encode(borrachariaCache)
+	sortedBorracharia := applySorting(filteredBorracharia, r)
+	paginatedBorracharia := utils.Paginate(sortedBorracharia, r)
+
+	mutex.Unlock()
+
+	if err := json.NewEncoder(w).Encode(paginatedBorracharia); err != nil {
+		http.Error(w, "Erro ao gerar a resposta.", http.StatusInternalServerError)
+	}
 }
 
 // ===================
-// PROCESSAMENTO DOS DADOS
+// FUNCOES AUXILIARES
 // ===================
 
-// processBorracharia converte os dados brutos em dados processados para exibição.
+func applyFilters(borracharia []Borracharia, r *http.Request, filterableColumns []string) []Borracharia {
+	return utils.FilterData(borracharia, r, filterableColumns)
+}
+
+func applySorting(borracharia []Borracharia, r *http.Request) []Borracharia {
+	sortBy := r.Header.Get("X-Sort-By")
+	sortOrder := r.Header.Get("X-Sort-Order")
+
+	if sortBy == "" {
+		sortBy = "Emissao"
+	}
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+
+	return utils.SortByColumn(borracharia, sortBy, sortOrder)
+}
+
 func processBorracharia(rawBorracharia []RawBorracharia) []Borracharia {
 	var processed []Borracharia
 	for _, raw := range rawBorracharia {
-		processed = append(processed, Borracharia{
+		borracharia := Borracharia{
 			Filial:   utils.TrimString(raw.Filial),
-			NF:       utils.TrimString(raw.Doc) + " - " + utils.TrimString(raw.Serie),
-			Cliente:  utils.TrimString(raw.Cliente) + " " + utils.TrimString(raw.ClienteNome),
-			Vendedor: utils.TrimString(raw.Vendedor) + " " + utils.TrimString(raw.VendedorDesc),
-			Produto:  utils.TrimString(raw.Codigo) + " " + utils.TrimString(raw.Descricao),
-			Saldo:    raw.Saldo,
+			NF:       utils.TrimString(raw.Documento) + " - " + utils.TrimString(raw.Serie),
+			Vendedor: utils.TrimString(raw.Vendedor) + " - " + utils.TrimString(raw.VendedorNome),
+			Cliente:  utils.TrimString(raw.Cliente) + " - " + utils.TrimString(raw.Loja) + " - " + utils.TrimString(raw.ClienteNome),
 			Emissao:  utils.FormatDate(utils.TrimString(raw.Emissao), "20060102", "02/01/2006"),
-		})
+		}
+		processed = append(processed, borracharia)
 	}
 	return processed
 }

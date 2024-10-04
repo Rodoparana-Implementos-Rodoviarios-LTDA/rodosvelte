@@ -1,3 +1,4 @@
+
 import type { HistoricoData, Column } from '$lib/types/tableTypes';
 import Action from './Action.svelte';  // Corrige o caminho para o Action.svelte
 
@@ -70,4 +71,3 @@ export const columns: Column<HistoricoData>[] = [
     }),
     isFilterable: false,  // Ações não são filtráveis
   },
-];
