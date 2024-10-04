@@ -14,7 +14,7 @@
 	} from '@tabler/icons-svelte';
 	import { goto } from '$app/navigation';
 	import { deleteData } from '$lib/services/idb';
-	import { IconTruckReturn } from '@tabler/icons-svelte';
+	import { IconTruckReturn, IconClockCheck } from '@tabler/icons-svelte';
 	interface MenuItem {
 		name: string;
 		icon: typeof IconDashboard | typeof IconPhone;
@@ -41,7 +41,8 @@
 			title: 'Controle de Itens',
 			items: [
 				{ name: 'Borracharia', icon: IconDashboard, link: '/controle-itens' },
-				{ name: 'Conferência', icon: IconShieldCheck, link: '/controle-itens/conferencia' }
+				{ name: 'Conferência', icon: IconClockCheck, link: '/controle-itens/conferencia' },
+				{ name: 'Conferidos', icon: IconShieldCheck, link: '/controle-itens/conferidos' }
 			]
 		},
 		{

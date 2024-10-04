@@ -1,180 +1,269 @@
 <script lang="ts">
-  import { fly } from 'svelte/transition';
-  import { circOut } from 'svelte/easing';
-  import { saldoStore } from '$lib/components/portaria/historico/saldoStore'; // Importa a store de saldo
-  import { IconCopyPlus } from '@tabler/icons-svelte';
+    import { fly } from 'svelte/transition';
+    import { circOut } from 'svelte/easing';
+    import { IconCopyPlus, IconTruckReturn, IconUserDollar, IconUser, IconCar } from '@tabler/icons-svelte';
 
-  // Recebe as informações adicionais já disponíveis no contexto da aplicação
-  export let documento: string;
-  export let filial: string;
-  export let produto: string;
-  export let item: string;
-  export let observacoes: string;
-  export let usuario: string = "usuarioAtual";
-  export let origem: string = "OrigemTeste";
+    // Importando o componente ProductItens
+    import ProductItens from './productItens.svelte';
 
-  export let saldoMaximo: number; // Recebe o saldo máximo para o range de quantidade
-  let quantity = 0; // Quantidade inicial para o range
-  let responsible = "";
-  let plate = "";
-  let selectedOption = "Cliente";
-  let isLoading = false;
-  let errorMessage = "";
-  let drawerVisible = false; // Controla a visibilidade do drawer
+    // Importando o tipo ItemNF
+    import type { ItemNF } from '$lib/types/tableTypes';
 
-  // Função para lidar com a ação de confirmar e enviar a solicitação via POST
-  async function handleConfirm() {
-    const body = {
-      filial,
-      documento,
-      produto,
-      item,
-      quantidade: quantity,
-      retiradopor: selectedOption,
-      responsavel: responsible,
-      placa: plate,
-      observacoes,
-      usuario,
-      origem
-    };
+    // Recebendo as informações via props
+    export let documentoCompleto: string;
+    export let clienteCompleto: string;
+    export let filial: string;
+    export let observacao: string | null = '';
+    export let usuario: string = 'matheus';
 
-    try {
-      isLoading = true;
-      const response = await fetch('http://172.16.99.174:8400/rest/MovPortaria/IncluirItem', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
+    // Variáveis de estado
+    let responsible = '';
+    let plate = '';
+    let retiradaPor = 'C'; // Valor padrão para o radio (Cliente)
+    let isLoading = false;
+    let errorMessage = '';
+    let drawerVisible = false;
 
-      if (!response.ok) {
-        throw new Error('Erro ao enviar a solicitação.');
-      }
+    // Variável para armazenar os itens selecionados
+    let itensSelecionados: ItemNF[] = [];
 
-      // Atualiza o saldo na store após o envio
-      saldoStore.set(saldoMaximo - quantity);
-
-      console.log('Solicitação enviada com sucesso');
-      errorMessage = ''; // Limpa a mensagem de erro
-      drawerVisible = false; // Fecha o drawer após a confirmação
-    } catch (error) {
-      console.error(error);
-      errorMessage = 'Erro ao enviar a solicitação.';
-    } finally {
-      isLoading = false;
+    // Abrir o drawer
+    function openDrawer() {
+        drawerVisible = true;
     }
-  }
 
-  // Função para fechar o Drawer ao clicar fora
-  function closeDrawer(event: Event) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('.drawer-content')) {
-      drawerVisible = false;
+    // Função para enviar as solicitações via POST
+    async function handleConfirm() {
+        console.log('handleConfirm - Início da função');
+
+        // Validar campos obrigatórios
+        if (!responsible || !plate) {
+            errorMessage = 'Preencha todos os campos obrigatórios.';
+            console.error(
+                'Erro: Campos obrigatórios faltando - responsible:',
+                responsible,
+                'plate:',
+                plate
+            );
+            return;
+        }
+
+        // Extrair documento e série
+        const { documento, serie } = separarDocumentoESerie(documentoCompleto);
+        const { cliente, loja } = separarClienteLoja(clienteCompleto);
+
+        // Filtrar itens com quantidade > 0
+        const itensParaIncluir = itensSelecionados.filter(item => item.quantity > 0);
+
+        if (itensParaIncluir.length === 0) {
+            errorMessage = 'Nenhum item selecionado para inclusão.';
+            console.error('Erro: Nenhum item selecionado para inclusão.');
+            return;
+        }
+
+        try {
+            isLoading = true;
+            errorMessage = ''; // Limpar mensagens de erro anteriores
+
+            // Criar um array de promessas para enviar as requisições em paralelo
+            const promises = itensParaIncluir.map(async (item) => {
+                // Construir o corpo da solicitação para cada item
+                const body = {
+                    filial: filial.trim(),
+                    documento: documento.trim(),
+                    serie: serie.trim(),
+                    cliente: cliente.trim(),
+                    loja: loja.trim(),
+                    produto: item.D2_COD.trim(),
+                    item: item.D2_ITEM.trim(),
+                    quantidade: item.quantity,
+                    retiradopor: retiradaPor,
+                    responsavel: responsible.trim(),
+                    placa: plate.trim(),
+                    observacoes: observacao?.trim() || '',
+                    usuario: usuario.trim(),
+                    origem: 'S'
+                };
+
+                console.log('Enviando POST com o seguinte corpo:');
+                console.log(JSON.stringify(body, null, 2));
+
+                try {
+                    const response = await fetch('http://protheus-vm:9010/rest/MovPortaria/IncluirItem', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    console.log('Status da resposta do POST:', response.status);
+
+                    const responseData = await response.json();
+                    console.log('Dados recebidos da API após o POST:', responseData);
+
+                    if (!response.ok) {
+                        console.error('Erro na resposta da API após o POST:', responseData);
+                        // Retorna uma mensagem de erro específica para este item
+                        return `Erro ao incluir item ${item.D2_ITEM}: ${responseData.mensagem || 'Erro ao enviar a solicitação.'}`;
+                    }
+
+                    console.log(`Item ${item.D2_ITEM} incluído com sucesso.`);
+                    return null; // Indica sucesso para este item
+                } catch (error) {
+                    console.error(`Erro ao enviar o item ${item.D2_ITEM}:`, error);
+                    return `Erro ao incluir item ${item.D2_ITEM}: ${error.message || 'Erro ao enviar a solicitação.'}`;
+                }
+            });
+
+            // Aguarda todas as promessas serem resolvidas
+            const results = await Promise.all(promises);
+
+            // Verifica se houve erros
+            const errors = results.filter(result => result !== null);
+            if (errors.length > 0) {
+                errorMessage = errors.join('\n');
+                
+            } else {
+                errorMessage = '';
+                // Todos os itens foram incluídos com sucesso
+                alert('Todos os itens foram incluídos com sucesso!');
+                drawerVisible = false; // Fecha o drawer
+            }
+        } catch (error: any) {
+            console.error('Erro na requisição:', error);
+            errorMessage = 'Erro ao enviar a solicitação.';
+        } finally {
+            isLoading = false;
+        }
     }
-  }
+
+    // Função para fechar o drawer ao clicar fora dele
+    function closeDrawer(event: Event) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('.drawer-content')) {
+            drawerVisible = false;
+        }
+    }
+
+    // Funções para separar documento/serie e cliente/loja
+    function separarDocumentoESerie(docCompleto: string): { documento: string; serie: string } {
+        if (!docCompleto) return { documento: '', serie: '' };
+        const [documento, serie] = docCompleto.split(' - ').map((part) => part.trim());
+        return { documento: documento || '', serie: serie || '' };
+    }
+
+    function separarClienteLoja(clienteCompleto: string): { cliente: string; loja: string } {
+        if (!clienteCompleto) return { cliente: '', loja: '' };
+        const [cliente, loja] = clienteCompleto.split(' - ').map((part) => part.trim());
+        return { cliente: cliente || '', loja: loja || '' };
+    }
 </script>
 
 <!-- Botão que abre o Drawer -->
-<button class="btn btn-primary" on:click={() => drawerVisible = true}>
-  <IconCopyPlus />
+<button class="btn btn-primary" on:click={openDrawer}>
+    <IconCopyPlus />
 </button>
 
 <!-- Drawer -->
 {#if drawerVisible}
-  <!-- Overlay que fecha o Drawer ao clicar fora -->
-  <div class="fixed inset-0 bg-black bg-opacity-50 z-40" on:click={closeDrawer}></div>
+    <!-- Overlay que fecha o Drawer ao clicar fora -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 z-40" on:click={closeDrawer}></div>
 
-  <!-- Conteúdo do Drawer com animação fly -->
-  <div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
-    <div class="w-full h-screen bg-base-100 text-info p-8">
-      <h2 class="text-lg font-bold mb-4">Seleção de Pneus</h2>
-      <p class="mb-4">Saldo disponível: {saldoMaximo}</p>
+    <!-- Conteúdo do Drawer com animação fly -->
+    <div class="drawer drawer-content" transition:fly={{ x: 400, easing: circOut }}>
+        <div class="w-full h-screen bg-base-100 text-info p-4">
+            <h2 class="text-xl font-bold mb-4 text-primary">Seleção de Produtos</h2>
 
-      <!-- Range Slider de quantidade de pneus -->
-      <div class="mb-4">
-        <input
-          type="range"
-          min="0"
-          max={saldoMaximo}
-          bind:value={quantity}
-          class="range range-primary"
-        />
-        <p>Quantidade selecionada: {quantity}</p>
-      </div>
+            <!-- Componente ProductItens que exibe a lista de produtos -->
+            <ProductItens {documentoCompleto} {clienteCompleto} {filial} bind:itensSelecionados />
 
-      <!-- Radio Button para selecionar entre Cliente e Motorista -->
-      <div class="mb-4 flex space-x-4">
-        <label class="flex items-center">
-          <input 
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Cliente"
-            bind:group={selectedOption}
-            checked
-          />
-          <span class="ml-2">Cliente</span>
-        </label>
+            <!-- Radio Buttons para Cliente e Rodoparaná -->
+            <div class="mb-4 flex flex-col space-y-2">
+                <label class="flex items-center cursor-pointer">
+                    <IconUserDollar class="mr-2 text-primary" />
+                    <input
+                        type="radio"
+                        name="retiradaPor"
+                        value="C"
+                        bind:group={retiradaPor}
+                        class="radio radio-base-content ml-2"
+                    />
+                    <span class="label-text text-primary text-base ml-2">Cliente</span>
+                </label>
 
-        <label class="flex items-center">
-          <input
-            type="radio"
-            name="radio-role"
-            class="radio radio-primary"
-            value="Motorista"
-            bind:group={selectedOption}
-          />
-          <span class="ml-2">Motorista</span>
-        </label>
-      </div>
+                <label class="flex items-center cursor-pointer">
+                    <IconTruckReturn class="mr-2 text-primary" />
+                    <input
+                        type="radio"
+                        name="retiradaPor"
+                        value="R"
+                        bind:group={retiradaPor}
+                        class="radio radio-base-content ml-2"
+                    />
+                    <span class="label-text text-primary text-base ml-2">Rodoparaná</span>
+                </label>
+            </div>
 
-      <!-- Inputs para o nome do responsável e a placa -->
-      <div class="mb-4 space-y-2">
-        <input
-          type="text"
-          placeholder="Nome do responsável"
-          bind:value={responsible}
-          class="input input-bordered w-full"
-        />
-        <input
-          type="text"
-          placeholder="Placa do carro"
-          bind:value={plate}
-          class="input input-bordered w-full"
-        />
-      </div>
+            <!-- Inputs para o nome do responsável e a placa -->
+            <div class="mb-4 space-y-2">
+                <div class="relative">
+                    <IconUser class="absolute left-3 top-3 text-primary" />
+                    <input
+                        type="text"
+                        placeholder="Nome do responsável"
+                        bind:value={responsible}
+                        class="input input-bordered w-full pl-10"
+                    />
+                </div>
+                <div class="relative">
+                    <IconCar class="absolute left-3 top-3 text-primary" />
+                    <input
+                        type="text"
+                        placeholder="Placa do carro"
+                        bind:value={plate}
+                        class="input input-bordered w-full pl-10"
+                    />
+                </div>
+            </div>
 
-      <!-- Botões de Ação -->
-      <div class="flex justify-between mt-6">
-        <button class="btn btn-primary" on:click={handleConfirm} disabled={isLoading}>
-          {#if isLoading}
-            Enviando...
-          {:else}
-            Confirmar
-          {/if}
-        </button>
-        <button class="btn btn-outline" on:click={() => drawerVisible = false}>
-          Cancelar
-        </button>
-      </div>
+            <!-- Campo de Observações -->
+            <div class="mb-4">
+                <textarea
+                    class="textarea textarea-bordered w-full"
+                    placeholder="Observações"
+                    bind:value={observacao}
+                ></textarea>
+            </div>
 
-      {#if errorMessage}
-        <p class="text-error mt-4">{errorMessage}</p>
-      {/if}
+            <!-- Botões de Ação -->
+            <div class="flex justify-between mt-6">
+                <button class="btn btn-primary" on:click={handleConfirm} disabled={isLoading}>
+                    {#if isLoading}
+                        Enviando...
+                    {:else}
+                        Confirmar
+                    {/if}
+                </button>
+                <button class="btn btn-outline" on:click={() => (drawerVisible = false)}> Cancelar </button>
+            </div>
+
+            {#if errorMessage}
+                <p class="text-error mt-4 whitespace-pre-line">{errorMessage}</p>
+            {/if}
+        </div>
     </div>
-  </div>
 {/if}
 
 <style>
-  .drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    height: 100vh;
-    width: 400px;
-    display: flex;
-    justify-content: space-between;
-    z-index: 50;
-  }
+    .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 400px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 50;
+    }
 </style>
