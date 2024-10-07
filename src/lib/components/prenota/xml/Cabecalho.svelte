@@ -1,19 +1,10 @@
 <script lang="ts">
-	import { fetchDetalhesXML } from '$lib/services/conexaoNFE';
+	import { fetchAndSaveConexaoNFE } from '$lib/services/conexaoNFE';
 	import { createEventDispatcher } from 'svelte';
 
-	import {
-		IconDownload,
-		IconReportSearch,
-		IconGitFork,
-		IconPaperclip,
-		IconArrowNarrowLeft,
-		IconDeviceFloppy,
-		IconPencilUp
-	} from '@tabler/icons-svelte';
-
-	import ComboboxesSection from './ComboboxesSection.svelte';
 	import XMLDetails from './XMLDetails.svelte'; // Novo componente que exibe detalhes
+	import { IconReportSearch, IconDownload, IconGitFork, IconPaperclip, IconPencilUp, IconArrowNarrowLeft, IconDeviceFloppy } from '@tabler/icons-svelte';
+	import ComboboxesSection from './ComboboxesSection.svelte';
 	const dispatch = createEventDispatcher();
 
 	// Variáveis para a busca do XML
@@ -28,12 +19,12 @@
 			return;
 		}
 
-		loadingDetalhes = true;
+		loadingDetalhes = true; // Inicia o estado de carregamento
 		errorDetalhes = null;
 
 		try {
 			// Busca os detalhes do XML diretamente da API
-			const data = await fetchDetalhesXML(xmlKey.trim());
+			const data = await fetchAndSaveConexaoNFE(xmlKey.trim());
 			dispatch('chaveXML', { xmlKey });
 
 			// Armazena os dados localmente para exibição
@@ -42,7 +33,7 @@
 			errorDetalhes = (error as Error).message;
 			console.error('Erro ao buscar detalhes do XML:', errorDetalhes);
 		} finally {
-			loadingDetalhes = false;
+			loadingDetalhes = false; // Finaliza o estado de carregamento
 		}
 	};
 </script>
@@ -109,7 +100,8 @@
 	<div id="secondLine" class="flex w-full h-full gap-5">
 		<!-- Usamos o componente XMLDetails e passamos os dados -->
 		<div id="detailsXML" class="card w-[40vw] h-full bg-base-100 p-5 gap-5">
-			<XMLDetails {xmlKey} />
+			<XMLDetails {loadingDetalhes} />
+			<!-- Passando a prop de loading para XMLDetails -->
 		</div>
 
 		<!-- Incluímos o componente ComboboxesSection -->

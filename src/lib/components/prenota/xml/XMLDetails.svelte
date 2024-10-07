@@ -1,85 +1,29 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
-	import { getOptionsData } from '$lib/services/idb'; // Função para buscar dados do IndexedDB
+	import { xmlDataStore } from '$lib/stores/xmlStore'; // Importar a store de dados XML
 	import type { DetalhesXML } from '$lib/types';
 
-	export let xmlKey: string;
-	let detalhesXML: DetalhesXML | null = null;
-	let loadingDetalhes: boolean = false;
+	export let loadingDetalhes: boolean = false; // Prop para controle de loading
+	let detalhesXML: DetalhesXML | null = null; // Dados da store de XML
 	let errorDetalhes: string | null = null;
 
-	// Função para buscar os dados do IndexedDB
-	async function fetchDetalhesFromIndexedDB(): Promise<void> {
-		try {
-			loadingDetalhes = true;
+	// Usando o sinal `$` para reatividade automática da store
+	$: {
+		if ($xmlDataStore) {
+			detalhesXML = $xmlDataStore;
 			errorDetalhes = null;
-
-			// Busca os dados na tabela 'xml' usando a chave fornecida
-			const result = await getOptionsData('xml', xmlKey);
-
-			if (result && result.data) {
-				// Acessa os dados dentro do campo 'data'
-				detalhesXML = result.data;
-				console.log('Dados obtidos do IndexedDB:', detalhesXML);
-				errorDetalhes = null; // Nenhum erro
-			} else {
-				throw new Error('Nenhum dado encontrado no IndexedDB.');
-			}
-		} catch (err) {
-			errorDetalhes = (err as Error).message;
-			console.error('Erro ao buscar dados no IndexedDB:', err);
-		} finally {
-			loadingDetalhes = false;
+		} else if (!loadingDetalhes && !detalhesXML) {
+			errorDetalhes = 'Nenhum dado encontrado.';
 		}
 	}
-
-	// Escutar o evento 'xmlDataUpdated' para buscar os dados novamente
-	function handleXmlDataUpdated(event: Event) {
-		const customEvent = event as CustomEvent; // Faz o cast para CustomEvent
-		console.log(`Evento 'xmlDataUpdated' capturado com detalhe:`, customEvent.detail);
-
-		// Busca os dados do IndexedDB
-		fetchDetalhesFromIndexedDB().then(() => {
-			if (!errorDetalhes) {
-				console.log('Busca de dados do XML concluída com sucesso!');
-			} else {
-				console.log('Erro ao buscar os dados do XML:', errorDetalhes);
-			}
-		});
-	}
-
-	// Hook que será executado quando o componente for montado
-	onMount(() => {
-		// Tenta recuperar a chave XML do LocalStorage se não for fornecida
-		if (!xmlKey) {
-			const storedKey = localStorage.getItem('xmlKey');
-			if (storedKey) {
-				xmlKey = storedKey;
-			}
-		}
-
-		// Se houver uma chave XML, busca os dados
-		if (xmlKey) {
-			fetchDetalhesFromIndexedDB();
-		}
-
-		// Adiciona o listener para o evento customizado
-		window.addEventListener('xmlDataUpdated', handleXmlDataUpdated);
-
-		// Limpeza do evento quando o componente for desmontado
-		onDestroy(() => {
-			window.removeEventListener('xmlDataUpdated', handleXmlDataUpdated);
-		});
-	});
 </script>
 
 {#if loadingDetalhes}
-	<div class="flex w-52 flex-col gap-4">
+	<div class="flex w-full flex-col gap-4">
 		<div class="flex items-center gap-4">
 			<div class="skeleton h-16 w-16 shrink-0 rounded-full"></div>
-			<div class="flex flex-col gap-4">
-				<div class="skeleton h-4 w-20"></div>
-				<div class="skeleton h-4 w-28"></div>
+			<div class="flex flex-col gap-4 w-full">
+				<div class="skeleton h-4 w-full"></div>
+				<div class="skeleton h-4 w-full"></div>
 			</div>
 		</div>
 		<div class="skeleton h-32 w-full"></div>
@@ -87,6 +31,7 @@
 {:else if errorDetalhes}
 	<p class="text-red-500">Erro: {errorDetalhes}</p>
 {:else if detalhesXML}
+	<!-- Renderiza os detalhes da XML -->
 	<div class="flex justify-between">
 		<div class="flex gap-2 items-center justify-start">
 			<span class="text-lg font-medium">FORNECEDOR:</span>

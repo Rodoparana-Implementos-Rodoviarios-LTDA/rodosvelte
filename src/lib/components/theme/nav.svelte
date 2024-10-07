@@ -1,83 +1,8 @@
 <script lang="ts">
-	import {
-		IconInfoCircle,
-		IconPhone,
-		IconLogout,
-		IconDashboard,
-		IconList,
-		IconPlus,
-		IconUpload,
-		IconShieldCheck,
-		IconCategory,
-		IconBulldozer,
-		IconTruck
-	} from '@tabler/icons-svelte';
+	import { IconTruckReturn, IconLogout, IconCategory } from '@tabler/icons-svelte';
 	import { goto } from '$app/navigation';
-	import { deleteData } from '$lib/services/idb';
-	import { IconTruckReturn, IconClockCheck } from '@tabler/icons-svelte';
-	interface MenuItem {
-		name: string;
-		icon: typeof IconDashboard | typeof IconPhone;
-		link: string;
-		external?: boolean;
-	}
-
-	interface MenuSection {
-		title: string;
-		link?: string;
-		items: MenuItem[];
-	}
-
-	const menuItems: MenuSection[] = [
-		{
-			title: 'Lançamento de Notas',
-			items: [
-				{ name: 'Lista de Pre Notas', icon: IconList, link: '/lancamento-notas/' },
-				{ name: 'Incluir Manualmente', icon: IconPlus, link: '/lancamento-notas/incluir' },
-				{ name: 'Incluir XML', icon: IconUpload, link: '/lancamento-notas/xml' }
-			]
-		},
-		{
-			title: 'Controle de Itens',
-			items: [
-				{ name: 'Borracharia', icon: IconDashboard, link: '/controle-itens' },
-				{ name: 'Conferência', icon: IconClockCheck, link: '/controle-itens/conferencia' },
-				{ name: 'Conferidos', icon: IconShieldCheck, link: '/controle-itens/conferidos' }
-			]
-		},
-		{
-			title: 'Assinatura de Email',
-			items: [
-				{
-					name: 'Timber',
-					icon: IconBulldozer,
-					link: '/assinatura/timber'
-				},
-				{
-					name: 'Rodoparaná',
-					icon: IconTruck,
-					link: '/assinatura/rodo'
-				}
-			]
-		},
-		{
-			title: 'Suporte e Intranet',
-			items: [
-				{
-					name: 'Suporte',
-					icon: IconPhone,
-					link: 'https://hesk.rodoparana.com.br',
-					external: true
-				},
-				{
-					name: 'Intranet',
-					icon: IconInfoCircle,
-					link: 'https://sites.google.com/site/baserodoparana/home?authuser=1',
-					external: true
-				}
-			]
-		}
-	];
+	import { menuItems } from '$lib/stores/menuItems';
+	import { clearIndexedDB } from '$lib/services/idb'; // Importar a função para limpar o IndexedDB
 
 	let username = 'Usuário';
 	let isLoading = true;
@@ -97,10 +22,17 @@
 		}
 	}
 
+	// Função de logout que limpa o IndexedDB, o sessionStorage e redireciona para a tela de login
 	async function handleLogout() {
 		try {
-			await deleteData('username');
-			await deleteData('authToken');
+			// Limpar o sessionStorage
+			sessionStorage.removeItem('username');
+			sessionStorage.removeItem('token');
+
+			// Limpar o IndexedDB
+			await clearIndexedDB();
+
+			// Redirecionar para a página de login
 			goto('/');
 			console.log('Usuário deslogado e redirecionado para /');
 		} catch (error) {
@@ -131,9 +63,16 @@
 				<IconTruckReturn class="w-12 h-12 text-primary" />
 				<span class="text-3xl font-bold text-primary">RodoApp</span>
 			</div>
+			<div class="bg-base-300 rounded-xl p-4 mb-2 hover:bg-base-100">
+				<span
+					class="flex items-center space-x-3  rounded-lg transition duration-200 ease-in-out text-lg font-medium"
+					>Inicio</span
+				>
+			</div>
+
 			<!-- Accordion para as seções -->
 			{#each menuItems as section, index}
-				<div class="collapse bg-base-300 mb-2">
+				<div class="collapse bg-base-300 mb-2 hover:bg-base-100">
 					<!-- Usamos radio buttons para garantir que apenas uma seção esteja aberta -->
 					<input type="radio" name="menu-accordion" id="section-{index}" class="peer" />
 					<label for="section-{index}" class="collapse-title text-lg font-medium"

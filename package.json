@@ -39,13 +39,20 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@lordicon/element": "^1.10.0",
 		"@tabler/icons-svelte": "^3.14.0",
+		"clsx": "^2.1.1",
 		"date-fns": "^3.6.0",
 		"dexie": "^4.0.8",
 		"dexie-observable": "^4.0.1-beta.13",
 		"flatpickr": "^4.6.13",
 		"idb": "^8.0.0",
+		"lottie-web": "^5.12.2",
 		"radix-svelte": "^0.9.0",
-		"svelte-french-toast": "^1.2.0"
+		"simplex-noise": "^4.0.3",
+		"svelte-french-toast": "^1.2.0",
+		"svelte-inview": "^4.0.4",
+		"svelte-motion": "^0.12.2",
+		"tailwind-merge": "^2.5.3"
 	}
 }

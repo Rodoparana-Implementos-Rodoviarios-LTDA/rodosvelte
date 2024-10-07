@@ -3,6 +3,11 @@
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconFileTypeXml, IconPencilUp } from '@tabler/icons-svelte';
+	
+	// Importando os dados retornados do load function
+	export let unidadeMedida: any[];
+	export let condicoes: any[];
+	export let centoCusto: any[];
 
 	// Defina o endpoint no nível da página
 	export let endpoint: string = 'api/prenotas';

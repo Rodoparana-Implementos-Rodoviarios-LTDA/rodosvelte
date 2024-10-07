@@ -1,105 +1,57 @@
-import type { DetalhesXML, Filial } from '$lib/types';
-import { getOptionsData, saveOptionsData, deleteData } from '$lib/services/idb'; // Corrigido para usar getOptionsData
+// src/lib/services/fetchConexaoNFE.ts
+import { xmlDataStore, xmlItemsStore } from '$lib/stores/xmlStore';
+import type { ConexaoNFE } from '$lib/types/ConexaoNFE';
 
-export async function fetchDetalhesXML(
-	xml: string
-): Promise<DetalhesXML & { filialName?: string }> {
-	const token = import.meta.env.VITE_API_TOKEN; // Obtenha o token do .env.local
-	const filiaisApiUrl = import.meta.env.VITE_FILIAIS_API_URL; // Obtenha a URL da API de filiais do .env.local
-	const url = `https://api.conexaonfe.com.br/v1/dfes/${xml}/detalhes/xml`;
+/**
+ * Função para buscar detalhes do ConexãoNFE da API e salvar no store.
+ *
+ * @param {string} xml - O identificador XML a ser utilizado na URL da API.
+ * @returns {Promise<void>}
+ */
+export async function fetchAndSaveConexaoNFE(xml: string): Promise<void> {
+	// Configuração dos Headers
+	const myHeaders = new Headers();
+	myHeaders.append(
+		'Authorization',
+		'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjb25leGFvbmZlLmNvbS5iciIsIm5hbWUiOiJtYXRldXMiLCJpZCI6NTYwNTF9.SDMelkA6zQz0BFtLb-bCH4y6t2pTxWyuI5Lr2Bu_YUo'
+	);
+	myHeaders.append('Content-Type', 'application/json');
+
+	// Configuração das Opções da Requisição
+	const requestOptions: RequestInit = {
+		method: 'GET',
+		headers: myHeaders,
+		redirect: 'follow'
+	};
+
+	// Construção da URL com o parâmetro XML
+	const conexaoNFEApiUrl = `https://api.conexaonfe.com.br/v1/dfes/${xml}/detalhes/xml`;
 
 	try {
-		// Exclui os dados antigos com base na chave 'xml'
-		console.log(`Excluindo dados antigos da chave '${xml}' na tabela 'xml'...`);
-		await deleteData('xml', xml); // Exclui os dados anteriores da tabela 'xml'
-
-		// 1. Fetch detalhes do XML da API
-		const response = await fetch(url, {
-			method: 'GET',
-			headers: {
-				Authorization: `Bearer ${token}`,
-				'Content-Type': 'application/json'
-			}
-		});
+		// Realiza a requisição à API
+		const response = await fetch(conexaoNFEApiUrl, requestOptions);
 
 		if (!response.ok) {
-			throw new Error(`Erro na requisição de detalhes do XML: ${response.statusText}`);
+			throw new Error(
+				`Erro na requisição de ConexãoNFE: ${response.status} ${response.statusText}`
+			);
 		}
 
-		const data: DetalhesXML = await response.json();
-		console.log('Dados recebidos da API de detalhes do XML:', data);
+		// Extrai os dados da resposta
+		const result: ConexaoNFE = await response.json();
+		console.log('ConexãoNFE recebida da API:', result);
 
-		// 2. Extrai o CNPJ do destinatário
-		const cnpjDestinatario = data.cnpjDestinatario?.trim();
-		if (!cnpjDestinatario) {
-			console.warn('CNPJ do destinatário não encontrado nos detalhes do XML.');
-			// Salva os dados mesmo que a filial não seja encontrada
-			await saveOptionsData('xml', xml, data);
-			
-			// Emite o evento de que os dados foram atualizados
-			const event = new CustomEvent('xmlDataUpdated', { detail: { xml } });
-			window.dispatchEvent(event); // Emite o evento globalmente
-			console.log('Evento xmlDataUpdated emitido!');
-			
-			return data;
-		}
+		// Salva os dados gerais no xmlDataStore
+		xmlDataStore.set(result);
 
-		console.log('CNPJ Destinatário:', cnpjDestinatario);
-
-		// 3. Fetch lista de filiais
-		const filiaisResponse = await fetch(filiaisApiUrl, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		});
-
-		if (!filiaisResponse.ok) {
-			throw new Error(`Erro na requisição de filiais: ${filiaisResponse.statusText}`);
-		}
-
-		const filiais: Filial[] = await filiaisResponse.json();
-		console.log('Filiais recebidas da API:', filiais);
-
-		// 4. Triangular o CNPJ do destinatário com a lista de filiais
-		const filialEncontrada = filiais.find((filial) => {
-			const cnpjFilial = filial.cnpjFilial?.trim();
-			return cnpjFilial === cnpjDestinatario;
-		});
-
-		if (filialEncontrada) {
-			data.filialName = filialEncontrada.filial.trim();
-			console.log('Filial encontrada:', filialEncontrada.filial.trim());
+		// Extrai os itens e salva no xmlItemsStore
+		if (result.itens && Array.isArray(result.itens)) {
+			xmlItemsStore.set(result.itens);
+			console.log('Itens da XML salvos no xmlItemsStore com sucesso.');
 		} else {
-			console.warn(`Nenhuma filial encontrada para o CNPJ: ${cnpjDestinatario}`);
+			throw new Error('Nenhum item encontrado na resposta.');
 		}
-
-		// 5. Estruturar um novo objeto com os dados detalhados
-		const structuredData = {
-			...data,
-			filialName: filialEncontrada ? filialEncontrada.filial : null
-		};
-
-		// 6. Salvar os dados estruturados na tabela fixa `xml`
-		await saveOptionsData('xml', xml, structuredData); // Salva na tabela 'xml' com a chave xmlKey
-		console.log(`Dados salvos na tabela 'xml' com a chave ${xml}`);
-
-		// Emite o evento de que os dados foram atualizados
-		const event = new CustomEvent('xmlDataUpdated', { detail: { xml } });
-		window.dispatchEvent(event); // Emite o evento globalmente
-		console.log('Evento xmlDataUpdated emitido!');
-
-		return structuredData;
 	} catch (error) {
-		console.error('Erro ao buscar detalhes do XML:', error);
-
-		// Se falhar a chamada de API, verifica se os dados estão no IndexedDB usando getOptionsData
-		const cachedData = await getOptionsData('xml', xml);
-		if (cachedData) {
-			console.warn('Retornando dados do cache devido ao erro.');
-			return cachedData;
-		}
-
-		throw error; // Se não houver dados em cache, lança o erro
+		console.error('Erro ao buscar ou salvar ConexãoNFE:', error);
 	}
 }
