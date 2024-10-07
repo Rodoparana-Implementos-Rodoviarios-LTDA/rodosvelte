@@ -91,6 +91,7 @@ export interface HistoricoData {
 	Placa: string;
 	Observacao?: string;
 	Saldo: number;
+	Z08_CONFER: string; 
   }
 
 // Interface para PreNotaTabela

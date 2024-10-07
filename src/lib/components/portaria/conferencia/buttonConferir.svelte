@@ -1,4 +1,6 @@
 <script lang="ts">
+    import toast, { Toaster } from 'svelte-french-toast'; // Importando toast para notificações
+
     export let seqNumero: string | null = null;
     export let saldoConferencia: number;
     export let documento: string;
@@ -8,17 +10,23 @@
 
     let modalVisible = false;
 
+    // Função para abrir o modal de confirmação
     function openModal() {
         if (!disabled) modalVisible = true;
     }
 
+    // Função para fechar o modal de confirmação
     function closeModal() {
         modalVisible = false;
     }
 
+    // Função para realizar a conferência via POST
     async function confirmConferencia() {
         if (!seqNumero) {
-            alert('Número sequencial não encontrado. Conferência não pode ser realizada.');
+            const errorMessage = 'Número sequencial não encontrado. Conferência não pode ser realizada.';
+            console.error(errorMessage);
+            // Emite evento de erro
+            toast.error(errorMessage, { className: 'bg-error text-white' });
             return;
         }
 
@@ -44,18 +52,26 @@
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('Erro ao confirmar conferência:', errorText);
-                alert('Erro ao confirmar conferência: ' + errorText);
+                // Exibir toast de erro
+                toast.error(`Erro ao confirmar conferência: ${errorText}`, { className: 'bg-error text-white' });
                 return;
             }
 
-            alert('Conferência realizada com sucesso!');
+            // Exibe o toast de sucesso
+            toast.success('🎉 Conferência realizada com sucesso!', { className: 'bg-success text-white' });
+
+            // Fecha o modal
             closeModal();
         } catch (error) {
             console.error('Erro ao enviar conferência:', error);
-            alert('Erro ao confirmar conferência.');
+            // Exibir toast de erro
+            toast.error(`Erro ao enviar conferência: ${error.message}`, { className: 'bg-error text-white' });
         }
     }
 </script>
+
+<!-- Toaster para exibir notificações -->
+<Toaster />
 
 <!-- Botão que abre o modal, com suporte a "disabled" -->
 <button class="btn btn-primary w-full" on:click={openModal} disabled={disabled}>

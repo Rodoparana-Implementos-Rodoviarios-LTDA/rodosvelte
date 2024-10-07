@@ -1,6 +1,6 @@
 
 import type { HistoricoData, Column } from '$lib/types/tableTypes';
-import Action from './Action.svelte';  // Corrige o caminho para o Action.svelte
+import ActionButton from './ActionButton.svelte';  // Componente para a ação de conferência
 
 export const columns: Column<HistoricoData>[] = [
   {
@@ -40,34 +40,22 @@ export const columns: Column<HistoricoData>[] = [
     isFilterable: true
   },
   {
-    accessorKey: 'Placa',
-    header: 'Placa',
-    cell: (row: HistoricoData) => row.Placa,
-    isFilterable: true
-  },
-  {
-    accessorKey: 'Observacao',  // Coluna para observações
-    header: 'Observação',
-    cell: (row: HistoricoData) => row.Observacao || 'Sem Observação',
-    isFilterable: false
-  },
-  {
-    accessorKey: 'Saldo',
-    header: 'Saldo',
-    cell: (row: HistoricoData) => row.Saldo.toString(),
-    isFilterable: false
-  },
-  {
     accessorKey: 'actions',
     header: 'Ações',
-    component: Action,  // Usa o componente Action para ações
+    component: ActionButton,  // Usa o componente ActionButton para ações
     props: (row: HistoricoData) => ({
       documento: row.NF,            // Passa o NF (nota fiscal)
       produto: row.Produto,         // Passa o Produto
       saldoConferencia: row.Saldo,  // Passa o saldo
       responsavel: row.Responsavel,
-      filial: row.Filial,           // Adicionado para uso no componente Action
-      cliente: row.Cliente          // Adicionado para uso no componente Action
+      filial: row.Filial,           // Adicionado para uso no componente ActionButton
+      cliente: row.Cliente          // Adicionado para uso no componente ActionButton
     }),
+<<<<<<< Updated upstream
     isFilterable: false,  // Ações não são filtráveis
   },
+=======
+    isFilterable: false  // Ações não são filtráveis
+  }
+];
+>>>>>>> Stashed changes
