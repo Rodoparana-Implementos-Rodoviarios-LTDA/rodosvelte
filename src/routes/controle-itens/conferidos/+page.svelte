@@ -4,6 +4,7 @@
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { onMount } from 'svelte';
 	import { dataFetching } from '$lib/services/dataFetching'; // Função de fetching de dados
+	import { IconChevronDown } from '@tabler/icons-svelte';
 
 	// Endpoint específico para conferidos
 	const endpoint: string = 'api/pneus/historico'; // Endpoint correto
@@ -62,25 +63,41 @@
 	<div class="fixed top-8 left-1/2 transform -translate-x-1/2 text-center">
 		<h1 class="text-3xl font-bold">Itens Conferidos - Lista de Produtos</h1>
 	</div>
+	
 
 	<!-- Área dos Filtros e Exportação -->
 	<div class="flex flex-col items-end">
 		<div class="flex justify-end space-x-4 pb-5">
+			<!-- Dropdown de Navegação -->
+			<div class="dropdown dropdown-end">
+				<div tabindex="0" role="button" class="btn btn-outline m-1">
+					<IconChevronDown />
+				</div>
+				<ul
+					tabindex="0"
+					class="dropdown-content menu bg-base-100 rounded-box z-[1] border border-secondary w-52 p-2 shadow"
+				>
+					<li><a class="text-lg" href="/controle-itens">Borracharia</a></li>
+					<li><a class="text-lg" href="/controle-itens/conferencia">Conferência de Saída</a></li>
+				</ul>
+			</div>
+	
 			<!-- Componente de Filtros -->
 			<Filtrar {columns} on:applyFilters={applyFilters} on:resetFilters={resetFilters} />
 		</div>
-
+	
 		<!-- Mensagem de erro -->
 		{#if errorMessage}
 			<p class="text-error mt-4">{errorMessage}</p>
 		{/if}
-
+	
 		<!-- Mensagem de carregamento -->
 		{#if isLoading}
 			<p>Carregando...</p>
 		{:else}
 			<!-- Componente da Tabela com dados carregados diretamente -->
-			<Table {columns} {endpoint} />
+			<Table {columns} {endpoint} {filters} {sortBy} {sortOrder} />
 		{/if}
 	</div>
+	
 </div>
