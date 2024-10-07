@@ -2,32 +2,26 @@
     import { fly } from 'svelte/transition';
     import { circOut } from 'svelte/easing';
     import { IconCopyPlus, IconTruckReturn, IconUserDollar, IconUser, IconCar } from '@tabler/icons-svelte';
+    import ProductItens from './productItens.svelte'; // Componente de Itens
+    import type { ItemNF } from '$lib/types/tableTypes'; // Tipagem dos itens
 
-    // Importando o componente ProductItens
-    import ProductItens from './productItens.svelte';
+    import toast, { Toaster } from 'svelte-french-toast'; // Importando toast e Toaster
 
-    // Importando o tipo ItemNF
-    import type { ItemNF } from '$lib/types/tableTypes';
-
-    // Recebendo as informações via props
     export let documentoCompleto: string;
     export let clienteCompleto: string;
     export let filial: string;
     export let observacao: string | null = '';
     export let usuario: string = 'matheus';
 
-    // Variáveis de estado
     let responsible = '';
     let plate = '';
     let retiradaPor = 'C'; // Valor padrão para o radio (Cliente)
     let isLoading = false;
-    let errorMessage = '';
     let drawerVisible = false;
 
-    // Variável para armazenar os itens selecionados
-    let itensSelecionados: ItemNF[] = [];
+    let itensSelecionados: ItemNF[] = []; // Armazena os itens selecionados
 
-    // Abrir o drawer
+    // Função para abrir o drawer
     function openDrawer() {
         drawerVisible = true;
     }
@@ -36,38 +30,26 @@
     async function handleConfirm() {
         console.log('handleConfirm - Início da função');
 
-        // Validar campos obrigatórios
         if (!responsible || !plate) {
-            errorMessage = 'Preencha todos os campos obrigatórios.';
-            console.error(
-                'Erro: Campos obrigatórios faltando - responsible:',
-                responsible,
-                'plate:',
-                plate
-            );
+            toast.error('🚨 Preencha todos os campos obrigatórios!', { className: 'bg-error text-white' });  // Erro estilizado
+            console.error('Campos obrigatórios faltando - responsável ou placa.');
             return;
         }
 
-        // Extrair documento e série
         const { documento, serie } = separarDocumentoESerie(documentoCompleto);
         const { cliente, loja } = separarClienteLoja(clienteCompleto);
 
-        // Filtrar itens com quantidade > 0
         const itensParaIncluir = itensSelecionados.filter(item => item.quantity > 0);
-
         if (itensParaIncluir.length === 0) {
-            errorMessage = 'Nenhum item selecionado para inclusão.';
-            console.error('Erro: Nenhum item selecionado para inclusão.');
+            toast.error('❗ Nenhum item selecionado para inclusão!', { className: 'bg-warning text-white' });  // Alerta estilizado
+            console.error('Nenhum item selecionado para inclusão.');
             return;
         }
 
         try {
             isLoading = true;
-            errorMessage = ''; // Limpar mensagens de erro anteriores
 
-            // Criar um array de promessas para enviar as requisições em paralelo
             const promises = itensParaIncluir.map(async (item) => {
-                // Construir o corpo da solicitação para cada item
                 const body = {
                     filial: filial.trim(),
                     documento: documento.trim(),
@@ -85,60 +67,42 @@
                     origem: 'S'
                 };
 
-                console.log('Enviando POST com o seguinte corpo:');
-                console.log(JSON.stringify(body, null, 2));
+                console.log('Enviando POST com o seguinte corpo:', JSON.stringify(body, null, 2));
 
-                try {
-                    const response = await fetch('http://protheus-vm:9010/rest/MovPortaria/IncluirItem', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(body)
-                    });
+                const response = await fetch('http://protheus-vm:9010/rest/MovPortaria/IncluirItem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(body),
+                });
 
-                    console.log('Status da resposta do POST:', response.status);
+                console.log('Status da resposta do POST:', response.status);
 
-                    const responseData = await response.json();
-                    console.log('Dados recebidos da API após o POST:', responseData);
-
-                    if (!response.ok) {
-                        console.error('Erro na resposta da API após o POST:', responseData);
-                        // Retorna uma mensagem de erro específica para este item
-                        return `Erro ao incluir item ${item.D2_ITEM}: ${responseData.mensagem || 'Erro ao enviar a solicitação.'}`;
-                    }
-
-                    console.log(`Item ${item.D2_ITEM} incluído com sucesso.`);
-                    return null; // Indica sucesso para este item
-                } catch (error) {
-                    console.error(`Erro ao enviar o item ${item.D2_ITEM}:`, error);
-                    return `Erro ao incluir item ${item.D2_ITEM}: ${error.message || 'Erro ao enviar a solicitação.'}`;
+                if (!response.ok) {
+                    console.error(`Erro na inclusão do item ${item.D2_ITEM}`);
+                    throw new Error(`Erro ao incluir item ${item.D2_ITEM}`);
                 }
+
+                console.log(`Item ${item.D2_ITEM} incluído com sucesso.`);
+                return null;
             });
 
-            // Aguarda todas as promessas serem resolvidas
-            const results = await Promise.all(promises);
+            await Promise.all(promises);
 
-            // Verifica se houve erros
-            const errors = results.filter(result => result !== null);
-            if (errors.length > 0) {
-                errorMessage = errors.join('\n');
-                
-            } else {
-                errorMessage = '';
-                // Todos os itens foram incluídos com sucesso
-                alert('Todos os itens foram incluídos com sucesso!');
-                drawerVisible = false; // Fecha o drawer
-            }
-        } catch (error: any) {
-            console.error('Erro na requisição:', error);
-            errorMessage = 'Erro ao enviar a solicitação.';
+            // Se não houver erros, todos os itens foram incluídos com sucesso
+            toast.success('🎉 Todos os itens foram incluídos com sucesso!', { className: 'bg-success text-white' });  // Sucesso estilizado
+            drawerVisible = false; // Fecha o drawer
+
+        } catch (error) {
+            console.error('Erro na inclusão:', error);
+            toast.error(`❌ Erro ao incluir itens: ${error.message}`, { className: 'bg-error text-white' });  // Mensagem de erro estilizada
         } finally {
             isLoading = false;
         }
     }
 
-    // Função para fechar o drawer ao clicar fora dele
+    // Função para fechar o drawer
     function closeDrawer(event: Event) {
         const target = event.target as HTMLElement;
         if (!target.closest('.drawer-content')) {
@@ -146,19 +110,20 @@
         }
     }
 
-    // Funções para separar documento/serie e cliente/loja
+    // Separar documento/serie e cliente/loja
     function separarDocumentoESerie(docCompleto: string): { documento: string; serie: string } {
-        if (!docCompleto) return { documento: '', serie: '' };
-        const [documento, serie] = docCompleto.split(' - ').map((part) => part.trim());
+        const [documento, serie] = docCompleto.split(' - ').map(part => part.trim());
         return { documento: documento || '', serie: serie || '' };
     }
 
     function separarClienteLoja(clienteCompleto: string): { cliente: string; loja: string } {
-        if (!clienteCompleto) return { cliente: '', loja: '' };
-        const [cliente, loja] = clienteCompleto.split(' - ').map((part) => part.trim());
+        const [cliente, loja] = clienteCompleto.split(' - ').map(part => part.trim());
         return { cliente: cliente || '', loja: loja || '' };
     }
 </script>
+
+<!-- Toaster para exibir notificações -->
+<Toaster />
 
 <!-- Botão que abre o Drawer -->
 <button class="btn btn-primary" on:click={openDrawer}>
@@ -182,25 +147,13 @@
             <div class="mb-4 flex flex-col space-y-2">
                 <label class="flex items-center cursor-pointer">
                     <IconUserDollar class="mr-2 text-primary" />
-                    <input
-                        type="radio"
-                        name="retiradaPor"
-                        value="C"
-                        bind:group={retiradaPor}
-                        class="radio radio-base-content ml-2"
-                    />
+                    <input type="radio" name="retiradaPor" value="C" bind:group={retiradaPor} class="radio radio-base-content ml-2" />
                     <span class="label-text text-primary text-base ml-2">Cliente</span>
                 </label>
 
                 <label class="flex items-center cursor-pointer">
                     <IconTruckReturn class="mr-2 text-primary" />
-                    <input
-                        type="radio"
-                        name="retiradaPor"
-                        value="R"
-                        bind:group={retiradaPor}
-                        class="radio radio-base-content ml-2"
-                    />
+                    <input type="radio" name="retiradaPor" value="R" bind:group={retiradaPor} class="radio radio-base-content ml-2" />
                     <span class="label-text text-primary text-base ml-2">Rodoparaná</span>
                 </label>
             </div>
@@ -209,48 +162,26 @@
             <div class="mb-4 space-y-2">
                 <div class="relative">
                     <IconUser class="absolute left-3 top-3 text-primary" />
-                    <input
-                        type="text"
-                        placeholder="Nome do responsável"
-                        bind:value={responsible}
-                        class="input input-bordered w-full pl-10"
-                    />
+                    <input type="text" placeholder="Nome do responsável" bind:value={responsible} class="input input-bordered w-full pl-10" />
                 </div>
                 <div class="relative">
                     <IconCar class="absolute left-3 top-3 text-primary" />
-                    <input
-                        type="text"
-                        placeholder="Placa do carro"
-                        bind:value={plate}
-                        class="input input-bordered w-full pl-10"
-                    />
+                    <input type="text" placeholder="Placa do carro" bind:value={plate} class="input input-bordered w-full pl-10" />
                 </div>
             </div>
 
             <!-- Campo de Observações -->
             <div class="mb-4">
-                <textarea
-                    class="textarea textarea-bordered w-full"
-                    placeholder="Observações"
-                    bind:value={observacao}
-                ></textarea>
+                <textarea class="textarea textarea-bordered w-full" placeholder="Observações" bind:value={observacao}></textarea>
             </div>
 
             <!-- Botões de Ação -->
             <div class="flex justify-between mt-6">
                 <button class="btn btn-primary" on:click={handleConfirm} disabled={isLoading}>
-                    {#if isLoading}
-                        Enviando...
-                    {:else}
-                        Confirmar
-                    {/if}
+                    {#if isLoading} Enviando... {:else} Confirmar {/if}
                 </button>
-                <button class="btn btn-outline" on:click={() => (drawerVisible = false)}> Cancelar </button>
+                <button class="btn btn-outline" on:click={() => (drawerVisible = false)}>Cancelar</button>
             </div>
-
-            {#if errorMessage}
-                <p class="text-error mt-4 whitespace-pre-line">{errorMessage}</p>
-            {/if}
         </div>
     </div>
 {/if}

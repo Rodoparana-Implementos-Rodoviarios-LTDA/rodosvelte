@@ -54,7 +54,7 @@
 				>
 					<li><a class="text-lg" href="/controle-itens">Borracharia</a></li>
 					<li>
-						<a class="text-lg" href="/controle-itens/conferidos">Itens Conferidos</a>
+						<a class="text-lg" href="/controle-itens/conferencia">Itens Conferidos</a>
 					</li>
 				</ul>
 			</div>

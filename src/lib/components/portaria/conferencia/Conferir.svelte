@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { IconClipboard, IconTagsFilled, IconUser } from '@tabler/icons-svelte';
-    import ButtonConferir from './ButtonConferir.svelte'; // Importa o componente ButtonConferir
+    import ButtonConferir from './buttonConferir.svelte'; // Importa o componente ButtonConferir
 
     export let documento: string;
     export let produto: string;
