@@ -2,12 +2,8 @@
 <script lang="ts">
 	import { columns } from '$lib/components/portaria/borracharia/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
-	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
-	import { IconChevronDown } from '@tabler/icons-svelte';
-	
-	// Importar a interface 'borracharia'
+	import { IconChevronDown } from '@tabler/icons-svelte';	
 	import type { borracharia } from '$lib/types/tableTypes';
 	
 	// Defina o endpoint no nível da página
@@ -31,11 +27,6 @@
 	  const resetEvent = new CustomEvent('resetFilters');
 	  window.dispatchEvent(resetEvent);
 	}
-	
-	// Carrega as filiais no IndexedDB ao carregar a página
-	onMount(async () => {
-	  await fetchAndSaveFiliais(); // Chama a função para buscar e salvar as filiais
-	});
   </script>
   
   <!-- Interface da Tabela -->

@@ -82,17 +82,7 @@ export const columns: Column<XML>[] = [
 			valorIpi: row.valorIpi,
 			aliqIpi: row.aliqIpi
 		}),
-		class: 'w-36 text-center',
-		isFilterable: false
-	},
-	{
-		accessorKey: 'protheus',
-		header: 'Protheus',
-		component: Produto,
-		props: (row: any) => ({
-			ncmsh: row.ncmsh
-		}),
-		class: 'min-w-64 text-center',
+		class: 'w-36 text-center z-50',
 		isFilterable: false
 	}
 

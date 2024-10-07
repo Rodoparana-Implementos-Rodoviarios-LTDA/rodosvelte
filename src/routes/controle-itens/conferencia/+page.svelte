@@ -1,11 +1,8 @@
 <script lang="ts">
 	import { columns } from '$lib/components/portaria/conferencia/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
-
-	import { onMount } from 'svelte';
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { fetchAndSaveFiliais } from '$lib/services/filiaisFetch';
 
 	// Defina o endpoint no nível da página
 	export let endpoint: string = 'api/portaria';
@@ -28,11 +25,6 @@
 		const resetEvent = new CustomEvent('resetFilters');
 		dispatchEvent(resetEvent);
 	}
-
-	// Carrega as filiais no IndexedDB ao carregar a página
-	onMount(async () => {
-		await fetchAndSaveFiliais(); // Chama a função para buscar e salvar as filiais
-	});
 </script>
 
 <!-- Interface da Tabela -->

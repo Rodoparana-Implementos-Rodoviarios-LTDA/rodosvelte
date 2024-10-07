@@ -1,23 +1,24 @@
 <script lang="ts">
 	import { xmlDataStore } from '$lib/stores/xmlStore'; // Importar a store de dados XML
-	import type { DetalhesXML } from '$lib/types';
+	import { fetchState } from '$lib/services/conexaoNFE'; // Importar a store de estado
+	import type { ConexaoNFE } from '$lib/types/ConexaoNFE'; // Importar o tipo correto
 
-	export let loadingDetalhes: boolean = false; // Prop para controle de loading
-	let detalhesXML: DetalhesXML | null = null; // Dados da store de XML
-	let errorDetalhes: string | null = null;
+	let detalhesXML: ConexaoNFE | null = null; // Dados da store de XML
 
-	// Usando o sinal `$` para reatividade automática da store
-	$: {
-		if ($xmlDataStore) {
-			detalhesXML = $xmlDataStore;
-			errorDetalhes = null;
-		} else if (!loadingDetalhes && !detalhesXML) {
-			errorDetalhes = 'Nenhum dado encontrado.';
-		}
-	}
+	// Usa o estado da store fetchState
+	$: estadoAtual = $fetchState;
+
+	// Usa o sinal $ para obter a reatividade automática da store xmlDataStore
+	$: detalhesXML = $xmlDataStore;
 </script>
 
-{#if loadingDetalhes}
+<!-- Renderização condicional baseada no estado -->
+{#if estadoAtual === 'inicial'}
+	<div class="h-full flex items-center justify-center">
+		<p class="text-center text-info text-lg">
+			Por favor, insira uma chave XML para buscar os detalhes.
+		</p>
+	</div>{:else if estadoAtual === 'carregando'}
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex items-center gap-4">
 			<div class="skeleton h-16 w-16 shrink-0 rounded-full"></div>
@@ -28,9 +29,9 @@
 		</div>
 		<div class="skeleton h-32 w-full"></div>
 	</div>
-{:else if errorDetalhes}
-	<p class="text-red-500">Erro: {errorDetalhes}</p>
-{:else if detalhesXML}
+{:else if estadoAtual === 'erro'}
+	<p class="text-red-500">Erro ao buscar os dados da XML. Tente novamente.</p>
+{:else if estadoAtual === 'sucesso' && detalhesXML}
 	<!-- Renderiza os detalhes da XML -->
 	<div class="flex justify-between">
 		<div class="flex gap-2 items-center justify-start">
@@ -67,6 +68,4 @@
 			<p>{detalhesXML.informacoesAdicionais}</p>
 		</div>
 	</div>
-{:else}
-	<p>Insira uma chave XML para buscar os detalhes.</p>
 {/if}

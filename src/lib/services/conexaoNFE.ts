@@ -1,6 +1,9 @@
-// src/lib/services/fetchConexaoNFE.ts
+import { writable } from 'svelte/store';
 import { xmlDataStore, xmlItemsStore } from '$lib/stores/xmlStore';
 import type { ConexaoNFE } from '$lib/types/ConexaoNFE';
+
+// Store de estado para o carregamento
+export const fetchState = writable<'inicial' | 'carregando' | 'sucesso' | 'erro'>('inicial');
 
 /**
  * Função para buscar detalhes do ConexãoNFE da API e salvar no store.
@@ -23,6 +26,9 @@ export async function fetchAndSaveConexaoNFE(xml: string): Promise<void> {
 		headers: myHeaders,
 		redirect: 'follow'
 	};
+
+	// Inicializa o estado como "carregando"
+	fetchState.set('carregando');
 
 	// Construção da URL com o parâmetro XML
 	const conexaoNFEApiUrl = `https://api.conexaonfe.com.br/v1/dfes/${xml}/detalhes/xml`;
@@ -51,7 +57,12 @@ export async function fetchAndSaveConexaoNFE(xml: string): Promise<void> {
 		} else {
 			throw new Error('Nenhum item encontrado na resposta.');
 		}
+
+		// Define o estado como "sucesso"
+		fetchState.set('sucesso');
 	} catch (error) {
 		console.error('Erro ao buscar ou salvar ConexãoNFE:', error);
+		// Define o estado como "erro"
+		fetchState.set('erro');
 	}
 }

@@ -15,7 +15,7 @@
 		{
 			title: 'Conferência de Saída de Pneus.',
 			description: 'Precisa entregar pneus, lance aqui!',
-			href: '/lancamento-notas',
+			href: '/controle-itens',
 			lottie: 'https://cdn.lordicon.com/zzjjvkam.json',
 			className: 'md:col-span-1',
 			icon: IconTruck
@@ -23,7 +23,7 @@
 		{
 			title: 'Gerador de Assinaturas',
 			description: 'Acabou de entrar na empresa e precisa de uma assinatura? Crie já a sua.',
-			href: '/lancamento-notas',
+			href: '/assinatura',
 			lottie: 'https://cdn.lordicon.com/fikcyfpp.json',
 			className: 'md:col-span-1',
 			icon: IconSignature
@@ -31,7 +31,7 @@
 		{
 			title: 'Intranet',
 			description: 'Quer conhecer mais sobre nossos processos? Acesse a nossa nova documentação.',
-			href: '/lancamento-notas',
+			href: '/intranet',
 			lottie: 'https://cdn.lordicon.com/fqbvgezn.json',
 			className: 'md:col-span-2',
 			icon: IconCloud

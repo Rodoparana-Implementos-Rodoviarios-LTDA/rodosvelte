@@ -4,7 +4,6 @@
 	import { onMount } from 'svelte';
 	import { xmlItemsStore } from '$lib/stores/xmlStore'; // Importa a store de itens
 
-
 	let loadingProdutos: boolean = false; // Estado de carregamento para os produtos
 	let produtosError = null; // Variável para armazenar erro na tabela de produtos
 
@@ -34,12 +33,6 @@
 		<Cabecalho />
 	</header>
 	<section class="w-full h-full">
-		{#if produtosError}
-			<p class="text-center text-red-500">Erro ao carregar a tabela de produtos: {produtosError}</p>
-		{:else if loadingProdutos}
-			<p class="text-center text-lg">Carregando produtos...</p>
-		{:else}
-			<ProdutosXMLTable />
-		{/if}
+		<ProdutosXMLTable />
 	</section>
 </main>
