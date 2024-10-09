@@ -1,10 +1,16 @@
 <script lang="ts">
 	import Combobox from '$lib/components/ui/Combobox.svelte';
-	import { onMount } from 'svelte';
-	import { tiposNFOptions, prioridadeOptions, condicoesStore } from '$lib/stores/xmlStore';
-	import type { CondicaoOption } from '$lib/types/CargaInicio'; // Usando o tipo CondicaoOption
+	import {
+		tiposNFOptions,
+		prioridadeOptions,
+		condicoesStore,
+		selectedTipoNF,
+		selectedPriority,
+		selectedCondicao
+	} from '$lib/stores/xmlStore';
+	import { fetchProdutos } from '$lib/services/fetchProdutos';
+	import type { CondicaoOption } from '$lib/types/CargaInicio';
 
-	// Inicializar as opções como um array vazio do tipo CondicaoOption[]
 	let condicaoOptions: CondicaoOption[] = [];
 
 	// Utilizando o sinal $ para obter os dados da store condicoesStore
@@ -13,24 +19,30 @@
 		value: condicao.E4_CODIGO.trim()
 	}));
 
-	// Função para tratar a seleção de Tipo de NF
-	function handleTipoDeNFSelect(event: CustomEvent) {
-		console.log('Tipo de NF selecionado:', event.detail);
-	}
+	// Função para tratar a seleção de Tipo de NF e salvar na store
+	async function handleTipoDeNFSelect(event: CustomEvent) {
+		const selectedValue = event.detail;
+		console.log('Tipo de NF selecionado:', selectedValue);
 
-	// Função para tratar a seleção de Prioridade
+		// Access the 'label' and 'value' from 'selected'
+		const { label } = selectedValue.selected;
+
+		selectedTipoNF.set(label);
+		fetchProdutos();
+	}
+	// Função para tratar a seleção de Prioridade e salvar na store
 	function handlePrioridadeSelect(event: CustomEvent) {
-		console.log('Prioridade selecionada:', event.detail);
+		const selectedValue = event.detail;
+		selectedPriority.set(selectedValue);
+		console.log('Prioridade selecionada:', selectedValue);
 	}
 
-	// Função para tratar a seleção de Condição (Forma de Pagamento)
+	// Função para tratar a seleção de Condição e salvar na store
 	function handleCondicaoSelect(event: CustomEvent) {
-		console.log('Condição selecionada:', event.detail);
+		const selectedValue = event.detail;
+		selectedCondicao.set(selectedValue);
+		console.log('Condição selecionada:', selectedValue);
 	}
-	// Busca as opções de Condições ao montar o componente
-	onMount(async () => {
-		// Se necessário, você pode atualizar as stores aqui ao carregar o componente
-	});
 </script>
 
 <!-- Estrutura do componente com os Comboboxes -->

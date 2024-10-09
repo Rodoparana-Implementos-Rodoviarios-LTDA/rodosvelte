@@ -47,6 +47,34 @@ func FetchFromEndpoint[T any](url string, headers map[string]string) ([]T, error
 
 	return result, nil
 }
+func FetchFromEndpointWithHeaders[T any](url string, headers map[string]string) ([]T, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao criar requisição: %w", err)
+	}
+
+	// Adiciona headers se fornecidos
+	for key, value := range headers {
+		req.Header.Add(key, value)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao fazer requisição: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("erro na resposta do servidor: %d", resp.StatusCode)
+	}
+
+	var result []T
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar JSON: %w", err)
+	}
+
+	return result, nil
+}
 
 func FetchRawFromEndpoint(url string, headers map[string]string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)

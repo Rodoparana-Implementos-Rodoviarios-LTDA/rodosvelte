@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { xmlDataStore } from '$lib/stores/xmlStore'; // Importar a store de dados XML
-	import { fetchState } from '$lib/services/conexaoNFE'; // Importar a store de estado
+	import { xmlDataStore, fetchState } from '$lib/stores/xmlStore';
 	import type { ConexaoNFE } from '$lib/types/ConexaoNFE'; // Importar o tipo correto
 
 	let detalhesXML: ConexaoNFE | null = null; // Dados da store de XML

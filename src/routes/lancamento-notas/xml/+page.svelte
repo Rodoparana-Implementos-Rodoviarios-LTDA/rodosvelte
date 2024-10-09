@@ -28,7 +28,7 @@
 	<h1 class="text-3xl font-bold">Importação de XML</h1>
 </div>
 
-<main class="h-[85vh] w-[98vw] flex flex-col justify-end items-baseline gap-10">
+<main class="h-[85vh] w-[98vw] flex flex-col gap-10">
 	<header class="h-fit w-full">
 		<Cabecalho />
 	</header>

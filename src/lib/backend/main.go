@@ -45,7 +45,7 @@ func main() {
 	portaria.InitializeCache()    // Carrega cache inicial de Portaria
 	historico.InitializeCache()   // Carrega cache inicial de Histórico
 	tabela.InitializeCache()      // Carrega cache inicial de Pré-Notas
-	produtos.InitializeCache()     // Carrega cache inicial de Produtos
+	produtos.InitializeCache()    // Carrega cache inicial de Produtos
 
 	// Multiplexer de rotas
 	mux := http.NewServeMux()
@@ -57,7 +57,7 @@ func main() {
 	mux.HandleFunc("/api/portaria", portaria.GetMovimentosPortaria)         // Portaria
 	mux.HandleFunc("/api/pneus/borracharia/listanfs", listanfs.GetListaNFS) // Lista de NFs Borracharia
 	mux.HandleFunc("/api/pneus/historico", historico.GetHistorico)          // Histórico de Saídas
-	mux.HandleFunc("/api/produto", produto.GetProdutos)                     // Produtos
+	mux.HandleFunc("/api/produtos", produtos.GetProdutos)                   // Produtos
 
 	// Adiciona o middleware de CORS ao multiplexer
 	handler := enableCors(mux)

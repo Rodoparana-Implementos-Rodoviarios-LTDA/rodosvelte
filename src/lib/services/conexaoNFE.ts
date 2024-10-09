@@ -1,9 +1,6 @@
 import { writable } from 'svelte/store';
-import { xmlDataStore, xmlItemsStore } from '$lib/stores/xmlStore';
-import type { ConexaoNFE } from '$lib/types/ConexaoNFE';
-
-// Store de estado para o carregamento
-export const fetchState = writable<'inicial' | 'carregando' | 'sucesso' | 'erro'>('inicial');
+import { xmlDataStore, xmlItemsStore, fetchState } from '$lib/stores/xmlStore';
+import type { ConexaoNFE, ConexaoNFEItem } from '$lib/types/ConexaoNFE';
 
 /**
  * Função para buscar detalhes do ConexãoNFE da API e salvar no store.
@@ -50,10 +47,16 @@ export async function fetchAndSaveConexaoNFE(xml: string): Promise<void> {
 		// Salva os dados gerais no xmlDataStore
 		xmlDataStore.set(result);
 
-		// Extrai os itens e salva no xmlItemsStore
+		// Extrai os itens, adiciona o índice a cada item e salva no xmlItemsStore
 		if (result.itens && Array.isArray(result.itens)) {
-			xmlItemsStore.set(result.itens);
-			console.log('Itens da XML salvos no xmlItemsStore com sucesso.');
+			const itensComIndice = result.itens.map((item, index) => ({
+				...item,
+				index: index + 1 // Adiciona o índice, começando em 1
+			}));
+
+			// Salva os itens com o índice no xmlItemsStore
+			xmlItemsStore.set(itensComIndice);
+			console.log('Itens da XML com índice salvos no xmlItemsStore com sucesso.');
 		} else {
 			throw new Error('Nenhum item encontrado na resposta.');
 		}
