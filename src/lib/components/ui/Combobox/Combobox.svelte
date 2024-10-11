@@ -1,67 +1,36 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { IconChevronDown } from '@tabler/icons-svelte';
-	import { selectedTipoNF } from '$lib/stores/xmlStore';
-	import { get } from 'svelte/store';
-
 	export let options: {
 		label: string;
 		value: string;
-		ncm?: string;
-		origem?: string;
+		campo1?: string;
+		campo2?: string;
 	}[] = [];
 	export let placeholder: string = 'Selecione uma opção';
 	export let disabled: boolean = false;
-	export let multiple: boolean = false;
+	export let multiple: boolean = false; // Seleção múltipla
 	export let additionalClass: string = '';
 	export let buttonClass: string = '';
-	export let origem: string = '';
-	export let ncmsh: string = '';
-
+	export let tit1: string = '';
+	export let tit2: string = '';
 	const dispatch = createEventDispatcher();
-
 	let isOpen = false;
-	export let selectedOption = multiple ? [] : null;
+	let selectedOptions = multiple ? [] : null; // Múltiplas seleções ou único
 	let searchTerm = '';
 	let highlightedIndex = -1;
 	let inputRef: HTMLInputElement | null = null;
 
-	const Tipo = get(selectedTipoNF);
+	// Filtrar opções com base no termo de busca
+	$: filteredOptions = searchTerm
+		? options.filter(
+				(option) =>
+					option.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					option.value.toLowerCase().includes(searchTerm.toLowerCase())
+			)
+		: options;
 
-	// Recalcula as opções filtradas reativamente com base no searchTerm, options, origem e ncmsh
-	$: filteredOptions = computeFilteredOptions();
-	function computeFilteredOptions() {
-		let filtered = options;
-
-		// Filtragem com base em "Matéria Prima" ou "Revenda"
-		if (Tipo === 'Matéria Prima' || Tipo === 'Revenda') {
-			filtered = filtered.filter((option) => {
-				const optionOrigem = String(option.origem || '').trim();
-				const origemValue = String(origem || '').trim();
-				const optionNcm = String(option.ncm || '').trim();
-				const ncmshValue = String(ncmsh || '').trim();
-				const origemMatches = optionOrigem === origemValue;
-				const ncmMatches = optionNcm === ncmshValue;
-
-				return ncmMatches && origemMatches;
-			});
-		}
-
-		// Filtragem com base no termo de busca
-		if (searchTerm) {
-			const term = searchTerm.toLowerCase();
-			filtered = filtered.filter((option) => {
-				return (
-					option.label.toLowerCase().includes(term) ||
-					(option.ncm && option.ncm.toLowerCase().includes(term)) ||
-					(option.value && option.value.toLowerCase().includes(term))
-				);
-			});
-		}
-
-		return filtered;
-	}
-
+	// Abrir e fechar o dropdown
 	const toggleDropdown = () => {
 		if (disabled) return;
 		isOpen = !isOpen;
@@ -73,28 +42,34 @@
 		}
 	};
 
+	// Selecionar uma ou múltiplas opções
 	const selectOption = (option) => {
 		if (multiple) {
-			if (selectedOption.find((selected) => selected.value === option.value)) {
-				selectedOption = selectedOption.filter((selected) => selected.value !== option.value);
+			const alreadySelected = selectedOptions.find((selected) => selected.value === option.value);
+			if (alreadySelected) {
+				selectedOptions = selectedOptions.filter((selected) => selected.value !== option.value);
 			} else {
-				selectedOption = [...selectedOption, option];
+				selectedOptions = [...selectedOptions, option];
 			}
+			searchTerm = ''; // Limpar o campo de busca após selecionar
+			inputRef?.focus(); // Focar no input novamente para permitir nova busca
 		} else {
-			selectedOption = option;
+			selectedOptions = option;
 			isOpen = false;
 		}
-		dispatch('select', { selected: selectedOption });
+		dispatch('select', { selected: selectedOptions });
 	};
 
+	// Verificar se a opção está selecionada
 	const isSelected = (option) => {
 		if (multiple) {
-			return selectedOption.find((selected) => selected.value === option.value);
+			return selectedOptions.some((selected) => selected.value === option.value);
 		} else {
-			return selectedOption && selectedOption.value === option.value;
+			return selectedOptions && selectedOptions.value === option.value;
 		}
 	};
 
+	// Controlar a navegação com teclado (setas e Enter)
 	const handleKeyDown = (e) => {
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
@@ -112,6 +87,7 @@
 		}
 	};
 
+	// Fechar o dropdown ao clicar fora
 	const handleClickOutside = (event) => {
 		if (inputRef && !inputRef.contains(event.target)) {
 			isOpen = false;
@@ -126,20 +102,24 @@
 	});
 </script>
 
+<!-- Estrutura do Combobox -->
 <div class={`relative ${additionalClass}`}>
-	<div
+	<!-- Botão para abrir o dropdown -->
+	<button
+		type="button"
 		class={`flex items-center justify-start border ${
 			disabled ? 'bg-base-200 cursor-not-allowed' : 'bg-base-100'
-		} border-base-300 rounded-md p-2 cursor-pointer ${buttonClass}`}
+		} border-base-300 rounded-md p-2 ${buttonClass}`}
 		on:click={toggleDropdown}
+		on:keydown={handleKeyDown}
 		aria-haspopup="listbox"
 		aria-expanded={isOpen}
-		role="combobox"
 	>
 		<div class="flex flex-wrap gap-1 w-full">
 			{#if multiple}
-				{#each selectedOption as option}
-					<span class="badge badge-primary badge-outline">
+				<!-- Mostrar múltiplas opções selecionadas -->
+				{#each selectedOptions as option}
+					<span class="badge badge-neutral text-primary font-medium text-base">
 						{option.label}
 						<button
 							class="ml-1 text-error"
@@ -150,37 +130,30 @@
 						</button>
 					</span>
 				{/each}
-				{#if selectedOption.length === 0}
+				{#if selectedOptions.length === 0}
+					<!-- Input de busca -->
 					<input
 						type="text"
 						class="bg-transparent flex-1 focus:outline-none"
 						{placeholder}
 						bind:value={searchTerm}
-						on:click|stopPropagation={() => (isOpen = true)}
 						on:keydown={handleKeyDown}
-						on:input={(e) => {
-							searchTerm = e.target.value;
-							isOpen = true;
-						}}
 						aria-label={placeholder}
 						bind:this={inputRef}
 						{disabled}
 					/>
 				{/if}
-			{:else if selectedOption}
-				<span class="flex-1">{selectedOption.label}</span>
+			{:else if selectedOptions}
+				<!-- Mostrar única opção selecionada -->
+				<span class="flex-1">{selectedOptions.label}</span>
 			{:else}
+				<!-- Input de busca -->
 				<input
 					type="text"
-					class="bg-transparent flex-1 focus:outline-none"
+					class="bg-transparent flex-1 focus:outline-none w-full"
 					{placeholder}
 					bind:value={searchTerm}
-					on:click|stopPropagation={() => (isOpen = true)}
 					on:keydown={handleKeyDown}
-					on:input={(e) => {
-						searchTerm = e.target.value;
-						isOpen = true;
-					}}
 					aria-label={placeholder}
 					bind:this={inputRef}
 					{disabled}
@@ -190,7 +163,7 @@
 		<IconChevronDown
 			class={`transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`}
 		/>
-	</div>
+	</button>
 
 	{#if isOpen}
 		<div
@@ -205,14 +178,29 @@
 							} ${isSelected(option) ? 'font-bold' : ''}`}
 							on:click={() => selectOption(option)}
 							on:mouseenter={() => (highlightedIndex = index)}
+							on:keydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									selectOption(option);
+								}
+							}}
 							role="option"
 							aria-selected={isSelected(option)}
+							tabindex="0"
 						>
-							<span class="text-xs text-base-content/60">
-								{option.ncm ? `NCM: ${option.ncm}` : ''}
-								{option.origem ? ` Origem: ${option.origem}` : ''}
-							</span>
-
+							<!-- Mostra os campos dinâmicos -->
+							{#if option.campo1 || option.campo2}
+								<div class="flex justify-start items-center gap-2">
+									{#if option.campo1}
+										<span class="text-xs text-base-content/60">{tit1} {option.campo1}</span>
+									{/if}
+									{#if option.campo1 && option.campo2}
+										<span class="text-xs text-base-content/60">|</span>
+									{/if}
+									{#if option.campo2}
+										<span class="text-xs text-base-content/60">{tit2} {option.campo2}</span>
+									{/if}
+								</div>
+							{/if}
 							<span class="text-base font-bold">{option.label}</span>
 						</li>
 					{/each}
@@ -223,11 +211,3 @@
 		</div>
 	{/if}
 </div>
-
-<style>
-	.badge button {
-		background: transparent;
-		border: none;
-		cursor: pointer;
-	}
-</style>

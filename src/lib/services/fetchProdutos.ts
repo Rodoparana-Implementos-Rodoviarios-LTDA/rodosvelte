@@ -48,8 +48,8 @@ export async function fetchProdutos(): Promise<void> {
 		const mappedProdutos: ProdutoOption[] = result.map((produto: any) => ({
 			label: produto.B1_DESC,
 			value: produto.B1_COD,
-			B1_ORIGEM: produto.B1_ORIGEM,
-			B1_POSIPI: produto.B1_POSIPI
+			campo1: produto.B1_POSIPI,
+			campo2: produto.B1_ORIGEM
 		}));
 
 		// Save the products to the store

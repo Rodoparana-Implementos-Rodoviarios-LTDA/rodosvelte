@@ -1,14 +1,32 @@
 <script lang="ts">
-	import { xmlDataStore, fetchState } from '$lib/stores/xmlStore';
-	import type { ConexaoNFE } from '$lib/types/ConexaoNFE'; // Importar o tipo correto
+	import { xmlDataStore, fetchState, xmlCnpj } from '$lib/stores/xmlStore';
+	import { fetchPedidos } from '$lib/services/fetchPedidos';
+	import { onMount } from 'svelte';
 
-	let detalhesXML: ConexaoNFE | null = null; // Dados da store de XML
+	let detalhesXML = null;
+	let cnpjEmitente = null;
 
 	// Usa o estado da store fetchState
 	$: estadoAtual = $fetchState;
 
 	// Usa o sinal $ para obter a reatividade automática da store xmlDataStore
 	$: detalhesXML = $xmlDataStore;
+
+	// Função para buscar os pedidos com base no CNPJ
+	async function buscarPedidos(cnpj) {
+		await fetchPedidos(cnpj); // Chama o fetch para salvar os pedidos na pedidosStore
+	}
+
+	// Atualiza o CNPJ emitente quando os dados XML forem obtidos
+	$: if (detalhesXML) {
+		cnpjEmitente = detalhesXML.cnpjEmitente;
+
+		// Salva o CNPJ no store xmlCnpj
+		xmlCnpj.set(cnpjEmitente);
+
+		// Faz a busca pelos pedidos relacionados ao fornecedor
+		buscarPedidos(cnpjEmitente);
+	}
 </script>
 
 <!-- Renderização condicional baseada no estado -->
@@ -17,7 +35,8 @@
 		<p class="text-center text-info text-lg">
 			Por favor, insira uma chave XML para buscar os detalhes.
 		</p>
-	</div>{:else if estadoAtual === 'carregando'}
+	</div>
+{:else if estadoAtual === 'carregando'}
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex items-center gap-4">
 			<div class="skeleton h-16 w-16 shrink-0 rounded-full"></div>
@@ -37,7 +56,7 @@
 			<span class="text-lg font-medium">FORNECEDOR:</span>
 			<div class="flex flex-col">
 				<span class="text-sm opacity-70">{detalhesXML.nomeEmitente}</span>
-				<span class="text-xs opacity-70"> {detalhesXML.cnpjEmitente}</span>
+				<span class="text-xs opacity-70">{detalhesXML.cnpjEmitente}</span>
 			</div>
 		</div>
 		<div class="flex gap-2 items-center justify-start">
@@ -60,7 +79,7 @@
 			<span class="opacity-70">{detalhesXML.dataEmissao}</span>
 		</div>
 	</div>
-	<div class="collapse collapse-arrow bg-base-300">
+	<div class="collapse collapse-arrow bg-base-300 mt-4">
 		<input type="checkbox" />
 		<div class="collapse-title text-lg font-medium w-full flex justify-center">Detalhes da XML</div>
 		<div class="collapse-content">

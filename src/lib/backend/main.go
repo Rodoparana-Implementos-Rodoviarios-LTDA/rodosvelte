@@ -10,6 +10,7 @@ import (
 	"backend/pneus/borracharia/listanfs"
 	"backend/pneus/historico"
 	"backend/pneus/portaria"
+	"backend/prenotas/pedido"
 	"backend/prenotas/produtos" // Importa o package de produtos
 	"backend/prenotas/tabela"
 )
@@ -50,9 +51,10 @@ func main() {
 	// Multiplexer de rotas
 	mux := http.NewServeMux()
 
-	// Rotas de API
-	mux.HandleFunc("/api/prenotas", tabela.GetPreNotas)                     // Pré-Notas
+	// Rotas de API	
 	mux.HandleFunc("/api/login", login.AuthHandler)                         // Login
+	mux.HandleFunc("/api/pedido", pedido.GetPedidos)                      // Pedidos (nova rota)
+	mux.HandleFunc("/api/prenotas", tabela.GetPreNotas)                     // Pré-Notas
 	mux.HandleFunc("/api/borracharia", borracharia.GetBorracharia)          // Borracharia
 	mux.HandleFunc("/api/portaria", portaria.GetMovimentosPortaria)         // Portaria
 	mux.HandleFunc("/api/pneus/borracharia/listanfs", listanfs.GetListaNFS) // Lista de NFs Borracharia

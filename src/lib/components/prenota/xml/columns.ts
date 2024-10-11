@@ -99,12 +99,13 @@ export const columns: Column<XML>[] = [
 		accessorKey: 'protheus',
 		header: 'Protheus',
 		component: Produto,
-		props: (row: any, index?: number) => ({
-			index, // Passing the index directly
-			origem: row.origem, // Ensure this matches the prop name in Produto.svelte
-			ncmsh: row.ncmsh // Use 'ncmsh' to match the prop name in Produto.svelte
+		props: (row: any) => ({
+			index: row.index,
+			origem: row.origem,
+			ncmsh: row.ncmsh,
 		}),
 		class: 'min-w-64 text-center',
 		isFilterable: false
 	}
+	
 ];

@@ -37,20 +37,20 @@
 {:else if estadoAtual === 'erro'}
 	<p class="text-red-500">Erro ao buscar os produtos da XML. Tente novamente.</p>
 {:else if estadoAtual === 'sucesso' && items && items.length > 0}
-	<div class="bg-base-300 justify-end items-baseline h-[60vh] rounded-md shadow-lg w-full overflow-auto">
-		<table class="table table-zebra w-full">
+	<div class="bg-base-300 justify-end items-baseline h-full rounded-md shadow-lg w-full overflow-auto">
+		<table class="table table-zebra w-full h-full">
 			<thead>
-				<tr>
+				<tr class="h-12">
 					{#each columns as column}
 						<th class={column.class}>{column.header}</th>
 					{/each}
 				</tr>
 			</thead>
-			<tbody>
+			<tbody class="h-full">
 				{#each items as row}
-					<tr>
+					<tr class="flex-grow 2xl:text-xl">
 						{#each columns as column}
-							<td class={column.class}>
+							<td class={`h-auto ${column.class}`}>
 								{#if column.component}
 									<svelte:component
 										this={column.component}
