@@ -1,6 +1,11 @@
 import { writable } from 'svelte/store';
-import { xmlDataStore, xmlItemsStore, fetchState } from '$lib/stores/xmlStore';
-import type { ConexaoNFE, ConexaoNFEItem } from '$lib/types/ConexaoNFE';
+import { xmlDataStore, xmlItemsStore, fetchState, filiaisStore } from '$lib/stores/xmlStore'; // Importando filiaisStore
+import type { ConexaoNFE } from '$lib/types/ConexaoNFE';
+
+// Função para normalizar o CNPJ, removendo pontos, traços e barras
+function normalizeCNPJ(cnpj: string): string {
+	return cnpj.replace(/[^\d]/g, ''); // Remove tudo que não for número
+}
 
 /**
  * Função para buscar detalhes do ConexãoNFE da API e salvar no store.
@@ -43,6 +48,23 @@ export async function fetchAndSaveConexaoNFE(xml: string): Promise<void> {
 		// Extrai os dados da resposta
 		const result: ConexaoNFE = await response.json();
 		console.log('ConexãoNFE recebida da API:', result);
+
+		// Normalizar o CNPJ do destinatário para garantir que possamos fazer o cruzamento correto
+		const cnpjDestinatario = normalizeCNPJ(result.cnpjDestinatario);
+
+		// Obter as filiais da store
+		let filiais = [];
+		filiaisStore.subscribe(value => {
+			filiais = value;
+		})();
+
+		// Encontrar a filial correspondente ao CNPJ do destinatário
+		const filialCorrespondente = filiais.find(filial => normalizeCNPJ(filial.cnpjFilial) === cnpjDestinatario);
+
+		// Se encontrar a filial correspondente, substitui o nome do destinatário pelo nome da filial
+		if (filialCorrespondente) {
+			result.nomeDestinatario = filialCorrespondente.filial.trim(); // Substitui o nome do destinatário
+		}
 
 		// Salva os dados gerais no xmlDataStore
 		xmlDataStore.set(result);

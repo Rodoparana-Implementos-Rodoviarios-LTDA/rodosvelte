@@ -1,6 +1,12 @@
 <script lang="ts">
-	// Imports de componentes e stores
+	// Imports de componentes
 	import Combobox from '$lib/components/ui/Combobox/Combobox.svelte';
+	// Importando os tipos necessários
+	import type { ComboboxOption } from '$lib/types/Produtos';
+	import type { CondicaoOption } from '$lib/types/CargaInicio';
+	import type { Pedido } from '$lib/types/Pedidos';
+
+	// Imports de stores
 	import {
 		tiposNFOptions,
 		prioridadeOptions,
@@ -8,116 +14,108 @@
 		selectedTipoNF,
 		selectedPriority,
 		selectedCondicao,
-		pedidoComboStore,
 		pedidosDetalhadosStore,
 		produtosDoPedidoStore
 	} from '$lib/stores/xmlStore';
+
+	// Imports de funções
 	import { fetchProdutos } from '$lib/services/fetchProdutos';
 	import { get } from 'svelte/store';
-	import type { Pedido } from '$lib/types/Pedidos';
-	import type { CondicaoOption } from '$lib/types/CargaInicio';
 
-	let selectedPedidos = []; // Para armazenar os pedidos selecionados
-	let ProdPedSel = []; // Produtos dos pedidos selecionados
-	let condicoesPagamentoDoPedido = []; // Condições de pagamento dos pedidos selecionados
+	/********************* Combobox de Pedidos *********************/
 
-	// Dados para Combobox de pedidos e condições de pagamento
-	let pedidosOptions = [];
-	let condicaoOptionsFiltradas = []; // Condições filtradas
-	let condicaoOptions: CondicaoOption[] = [];
-	$: pedidosOptions = formatPedidosOptions($pedidoComboStore);
-	$: condicaoOptions = formatCondicaoOptions($condicoesStore);
+	let pedidosOptions: ComboboxOption[] = []; // Opções para o Combobox de pedidos
+	let pedidosSelecionados: Pedido[] = [];
 
-	// Função para formatar os pedidos no Combobox
-	function formatPedidosOptions(pedidos) {
-		return pedidos.map((pedido) => ({
-			label: `Pedido: ${pedido.label}`,
-			value: pedido.value,
-			campo1: pedido.produto,
-			campo2: pedido.status
-		}));
+	// Reatividade para atualizar pedidosOptions sempre que a store for atualizada
+
+	$: pedidosOptions = FormataPedido($pedidosDetalhadosStore);
+
+	// Função que formata os pedidos (mantendo como objeto)
+	function FormataPedido(pedidos: Record<string, Pedido>): ComboboxOption[] {
+		// Verifica se é um objeto válido
+		if (typeof pedidos !== 'object' || pedidos === null) {
+			return [];
+		}
+
+		// Mapeia os valores do objeto de pedidos (sem transformar em array explicitamente)
+		return Object.keys(pedidos).map((key) => {
+			const pedido = pedidos[key];
+			return {
+				label: pedido.pedido, // Nome do pedido
+				value: pedido.pedido, // Número do pedido
+				campo1: pedido.produtos[0].pedidoProduto,
+				campo2: pedido.status
+			};
+		});
 	}
 
-	// Função para formatar as condições de pagamento
+	// Função de manipulação da seleção de pedidos
+	function handlePedidoSelect(event: CustomEvent) {
+		const selectedValues = event.detail.selected.map((item) => item.value); // Obtém os valores dos pedidos selecionados
+
+		// Filtrar os produtos dos pedidos selecionados
+		pedidosSelecionados = selectedValues.map((value) => $pedidosDetalhadosStore[value]);
+
+		// Extrair todos os produtos dos pedidos selecionados
+		const produtosSelecionados = pedidosSelecionados.flatMap((pedido) => pedido.produtos);
+
+		// Atualiza a store com os produtos dos pedidos selecionados (para mostrar no Combobox)
+		produtosDoPedidoStore.set(produtosSelecionados);
+
+		if (pedidosSelecionados.length > 0) {
+			const primeiroPedido = pedidosSelecionados[0]; // Pega o primeiro pedido selecionado
+			const condicaoPagamentoDoPedido = primeiroPedido.pagamento; // Condição de pagamento do pedido
+
+			// Atualiza o valor de condPedSel com a condição de pagamento
+			condPedSel = condicaoPagamentoDoPedido;
+		}
+	}
+	/********************* Combobox de Tipo de NF *********************/
+
+	// Função de manipulação da seleção de tipo de NF
+	async function handleTipoDeNFSelect(event: CustomEvent) {
+		const selectedValue = event.detail.selected;
+		selectedTipoNF.set(selectedValue.label);
+		await fetchProdutos();
+	}
+
+	/********************* Combobox de Prioridade *********************/
+
+	// Função de manipulação da seleção de prioridade
+	function handlePrioridadeSelect(event: CustomEvent) {
+		const selectedValue = event.detail.selected;
+		selectedPriority.set(selectedValue.label);
+	}
+
+	/********************* Combobox de Condição de Pagamento ***********/
+
+	let condicaoOptions: CondicaoOption[] = []; // Opções para o Combobox de condição de pagamento
+	let condPedSel = ''; // Condição de pagamento selecionada
+
+	// Formatação das opções de condição de pagamento
 	function formatCondicaoOptions(condicoes) {
 		return condicoes.map((condicao) => ({
 			label: condicao.E4_DESCRI.trim(),
 			value: condicao.E4_CODIGO.trim()
 		}));
 	}
+	$: condicaoOptions = formatCondicaoOptions($condicoesStore);
 
-	// Função para filtrar as condições de pagamento pelos métodos usados nos pedidos selecionados
-	function filtrarCondicoesPorPedidos(pedidosSelecionados) {
-		// Coleta todas as condições de pagamento dos produtos nos pedidos selecionados
-		const condicoesPagamento = pedidosSelecionados.flatMap((pedido) =>
-			pedido.produtos.map((produto) => produto.condicao_pagamento)
-		);
-
-		// Remove duplicatas
-		condicoesPagamentoDoPedido = [...new Set(condicoesPagamento)];
-
-		// Filtra as opções de condição de pagamento com base nos métodos usados nos pedidos
-		condicaoOptionsFiltradas = condicaoOptions.filter((condicao) =>
-			condicoesPagamentoDoPedido.includes(condicao.value)
-		);
-	}
-
-	// Função para tratar a seleção de Pedidos (múltipla seleção)
-	function handlePedidoSelect(event: CustomEvent) {
-		const selectedPedidosNovos = event.detail.selected;
-		console.log('Pedidos selecionados:', selectedPedidosNovos);
-
-		// Obtenha todos os pedidos detalhados da store
-		const pedidosDetalhados: Pedido[] = get(pedidosDetalhadosStore);
-
-		// Filtra os pedidos selecionados
-		selectedPedidos = pedidosDetalhados.filter((pedido) =>
-			selectedPedidosNovos.find((selected) => selected.value === pedido.pedido)
-		);
-
-		// Filtrar as condições de pagamento com base nos pedidos selecionados
-		filtrarCondicoesPorPedidos(selectedPedidos);
-
-		// Coletar todos os produtos dos pedidos selecionados
-		ProdPedSel = selectedPedidos.flatMap((pedido) => pedido.produtos);
-
-		// Atualiza a store com os produtos selecionados
-		produtosDoPedidoStore.set(ProdPedSel);
-	}
-
-	// Outras funções auxiliares para tratar Tipo de NF e Prioridade...
-	async function handleTipoDeNFSelect(event: CustomEvent) {
-		const selectedValue = event.detail.selected;
-		selectedTipoNF.set(selectedValue.label);
-		await fetchProdutos();
-		console.log('Tipo de NF selecionado:', selectedValue);
-	}
-
-	function handlePrioridadeSelect(event: CustomEvent) {
-		const selectedValue = event.detail.selected;
-		selectedPriority.set(selectedValue.label);
-		console.log('Prioridade selecionada:', selectedValue);
-	}
-
+	// Função de manipulação da seleção de condição de pagamento
 	function handleCondicaoSelect(event: CustomEvent) {
 		const selectedValue = event.detail.selected;
 		selectedCondicao.set(selectedValue.label);
-		console.log('Condição de pagamento selecionada:', selectedValue);
-	}
-
-	$: {
-		console.log('Condições de pagamento disponíveis:', condicaoOptionsFiltradas);
 	}
 </script>
 
-<!-- Estrutura do componente -->
+<!-- Estrutura do componente com os Comboboxes -->
 <div id="Inputs" class="card w-1/2 p-5 gap-5 bg-base-100 justify-evenly">
 	<div class="flex justify-center">
 		<span class="font-bold text-lg">Adicionar Informações sobre a NF</span>
 	</div>
 
 	<div class="flex w-full justify-evenly gap-5">
-		<!-- Combobox para Pedidos -->
 		<div class="w-full">
 			<Combobox
 				options={pedidosOptions}
@@ -125,10 +123,10 @@
 				on:select={handlePedidoSelect}
 				buttonClass="bg-base-300 w-full"
 				multiple
-				tit1="Primeiro Produto:"
+				tit2="Status: "
 			/>
 		</div>
-		<!-- Combobox para Tipo de NF -->
+
 		<div class="w-full">
 			<Combobox
 				options={tiposNFOptions}
@@ -140,7 +138,6 @@
 	</div>
 
 	<div class="flex w-full justify-evenly gap-5">
-		<!-- Combobox para Prioridade -->
 		<div class="w-full">
 			<Combobox
 				options={prioridadeOptions}
@@ -150,11 +147,11 @@
 			/>
 		</div>
 
-		<!-- Combobox para Condição de Pagamento -->
 		<div class="w-full">
 			<Combobox
-				options={condicaoOptionsFiltradas} F
+				options={condicaoOptions}
 				placeholder="Forma de Pagamento"
+				value={condPedSel}
 				on:select={handleCondicaoSelect}
 				buttonClass="bg-base-300 w-full"
 			/>

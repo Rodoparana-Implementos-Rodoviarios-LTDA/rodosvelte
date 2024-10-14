@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { xmlDataStore, fetchState, xmlCnpj } from '$lib/stores/xmlStore';
-	import { fetchPedidos } from '$lib/services/fetchPedidos';
-	import { onMount } from 'svelte';
+	// Imports de stores
+	import { xmlDataStore, fetchState } from '$lib/stores/xmlStore'; // Importando stores necessárias
+	import { fetchPedidos } from '$lib/services/fetchPedidos'; // Importando serviço de pedidos
 
 	let detalhesXML = null;
 	let cnpjEmitente = null;
@@ -12,7 +12,7 @@
 	// Usa o sinal $ para obter a reatividade automática da store xmlDataStore
 	$: detalhesXML = $xmlDataStore;
 
-	// Função para buscar os pedidos com base no CNPJ
+	// Função para buscar os pedidos com base no CNPJ emitente
 	async function buscarPedidos(cnpj) {
 		await fetchPedidos(cnpj); // Chama o fetch para salvar os pedidos na pedidosStore
 	}
@@ -20,9 +20,6 @@
 	// Atualiza o CNPJ emitente quando os dados XML forem obtidos
 	$: if (detalhesXML) {
 		cnpjEmitente = detalhesXML.cnpjEmitente;
-
-		// Salva o CNPJ no store xmlCnpj
-		xmlCnpj.set(cnpjEmitente);
 
 		// Faz a busca pelos pedidos relacionados ao fornecedor
 		buscarPedidos(cnpjEmitente);
@@ -68,9 +65,7 @@
 		<div class="flex gap-2 items-center justify-start">
 			<span class="text-lg font-medium">FILIAL:</span>
 			<div class="flex flex-col">
-				<span class="text-sm opacity-70"
-					>{detalhesXML.filialName || detalhesXML.nomeDestinatario}</span
-				>
+				<span class="text-sm opacity-70">{detalhesXML.nomeDestinatario}</span>
 				<span class="text-xs opacity-70"> {detalhesXML.cnpjDestinatario}</span>
 			</div>
 		</div>

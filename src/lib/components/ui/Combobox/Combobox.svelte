@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { IconChevronDown } from '@tabler/icons-svelte';
+
 	export let options: {
 		label: string;
 		value: string;
 		campo1?: string;
 		campo2?: string;
 	}[] = [];
+
+	export let value: string | string[] = ''; // Valor programático para seleção
 	export let placeholder: string = 'Selecione uma opção';
 	export let disabled: boolean = false;
 	export let multiple: boolean = false; // Seleção múltipla
@@ -14,12 +17,24 @@
 	export let buttonClass: string = '';
 	export let tit1: string = '';
 	export let tit2: string = '';
+
 	const dispatch = createEventDispatcher();
 	let isOpen = false;
 	let selectedOptions = multiple ? [] : null; // Múltiplas seleções ou único
 	let searchTerm = '';
 	let highlightedIndex = -1;
 	let inputRef: HTMLInputElement | null = null;
+
+	// Reatividade para atualizar `selectedOptions` programaticamente
+	$: if (value) {
+		if (multiple && Array.isArray(value)) {
+			// Para múltiplas seleções, preenche o array de opções selecionadas
+			selectedOptions = options.filter((option) => value.includes(option.value));
+		} else if (!multiple && typeof value === 'string') {
+			// Para seleção única
+			selectedOptions = options.find((option) => option.value === value) || null;
+		}
+	}
 
 	// Filtrar opções com base no termo de busca
 	$: filteredOptions = searchTerm

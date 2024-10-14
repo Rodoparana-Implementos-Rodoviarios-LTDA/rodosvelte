@@ -4,6 +4,7 @@ import type { ConexaoNFE, ConexaoNFEItem } from '$lib/types/ConexaoNFE';
 import type { Condicao, CentoCusto, UnidadeMedida } from '$lib/types/CargaInicio';
 import type { Pedido, ProdutoOption } from '$lib/types/Produtos';
 import type { PedidoProduto } from '$lib/types/Pedidos';
+import type { Filial } from '$lib/types';
 
 // Constantes de opções de prioridade
 export const prioridadeOptions = [
@@ -27,7 +28,7 @@ export const selectedCondicao = writable<string>(''); // Condição de pagamento
 export const condicoesStore = writable<Condicao[]>([]); // Condições de pagamento
 export const unidadeMedidaStore = writable<UnidadeMedida[]>([]); // Unidade de medida
 export const centoCustoStore = writable<CentoCusto[]>([]); // Centro de custo
-export const filiaisStore = writable<{ value: string; label: string }[]>([]); // Filiais
+export const filiaisStore = writable<Filial[]>([]); // Filiais
 
 // Writable stores para os dados da XML
 export const xmlItemsStore = writable<ConexaoNFEItem[]>([]); // Itens da XML

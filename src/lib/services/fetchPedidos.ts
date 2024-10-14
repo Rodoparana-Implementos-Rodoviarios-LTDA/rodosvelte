@@ -1,5 +1,5 @@
-import { pedidosDetalhadosStore, pedidoComboStore } from '$lib/stores/xmlStore';
-import type { Pedido, PedidoProduto, PedidoOption } from '$lib/types/Pedidos';
+import { pedidosDetalhadosStore } from '$lib/stores/xmlStore';
+import type { Pedido, PedidoProduto } from '$lib/types/Pedidos';
 
 // Função para realizar o fetch e salvar os dados na store
 export async function fetchPedidos(cnpj: string) {
@@ -28,31 +28,43 @@ export async function fetchPedidos(cnpj: string) {
 				return a.pedido.localeCompare(b.pedido); // Ordena alfabeticamente pelo código do pedido
 			});
 
-			// Salvando os pedidos detalhados completos na store 'pedidosDetalhadosStore'
-			pedidosDetalhadosStore.set(pedidosOrdenados);
+			// Transformar os pedidos na estrutura de objeto com o número do pedido como chave
+			const pedidosTransformados = pedidosOrdenados.reduce((acc, pedido: Pedido) => {
+				const produtosTransformados = pedido.produtos.map((produto: PedidoProduto) => ({
+					index: produto.index,
+					codigo: produto.codigo,
+					nomeProduto: produto.produto,
+					quantidade: produto.quantidade,
+					valorUnitario: produto.valor_unitario,
+					total: produto.total,
+					ncm: produto.ncm,
+					unidadeMedida: produto.unidade_medida,
+					grupo: produto.grupo,
+					origem: produto.origem
+				}));
 
-			// Preparando os dados para o combobox (somente pedido, primeiro produto e status)
-			const pedidosCombo: PedidoOption[] = pedidosOrdenados.map((pedido: Pedido) => {
-				const primeiroProduto: PedidoProduto = pedido.produtos[0]; // Pega o primeiro produto da lista
+				// Obter a condição de pagamento do primeiro produto (assumindo que todos compartilham a mesma)
+				const condicaoPagamento = pedido.produtos[0]?.condicao_pagamento || 'N/A';
 
-				return {
-					label: pedido.pedido, // Exibe o número do pedido no Combobox
-					value: pedido.pedido, // Valor que será usado internamente
-					produto: primeiroProduto.produto, // Nome do primeiro produto
-					status: pedido.status // Status do pedido
+				// Adiciona cada pedido no objeto com o número do pedido como chave
+				acc[pedido.pedido] = {
+					pedido: pedido.pedido,
+					status: pedido.status,
+					pagamento: condicaoPagamento, // Ajustado para ser diretamente no objeto do pedido
+					produtos: produtosTransformados
 				};
-			});
 
-			// Atualizando a store 'pedidoComboStore' com os dados formatados para o combobox
-			pedidoComboStore.set(pedidosCombo);
+				return acc;
+			}, {});
+
+			console.log('Pedidos transformados:', pedidosTransformados);
+
+			// Atualizando a store com os pedidos detalhados transformados (usando o número do pedido como chave)
+			pedidosDetalhadosStore.set(pedidosTransformados);
 		} else {
 			console.log('Nenhum pedido encontrado ou formato de resposta inesperado.');
-			pedidosDetalhadosStore.set([]); // Limpar a store se não houver pedidos
-			pedidoComboStore.set([]); // Limpar a store do combobox se não houver pedidos
 		}
 	} catch (error) {
 		console.error('Erro ao buscar pedidos:', error);
-		pedidosDetalhadosStore.set([]); // Limpar a store em caso de erro
-		pedidoComboStore.set([]); // Limpar a store do combobox em caso de erro
 	}
 }
