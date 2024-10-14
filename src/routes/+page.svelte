@@ -1,6 +1,6 @@
 <script>
 	import { goto } from '$app/navigation';
-	import { IconTruckReturn } from '@tabler/icons-svelte';
+	import Logo from '$lib/components/theme/Logo.svelte'
 	import { clearIndexedDB } from '$lib/services/idb'; // Importar a função para limpar o IndexedDB
 
 	let username = '';
@@ -66,10 +66,7 @@
 
 		<div class="flex flex-col justify-evenly items-center">
 			<div class="flex items-start justify-center">
-				<div class=" flex items-center justify-center">
-					<IconTruckReturn class="w-16 h-16 text-primary" />
-					<span class="text-5xl font-bold text-primary">RodoApp</span>
-				</div>
+				<Logo />
 			</div>
 
 			<!-- Formulário de Login no lado direito -->
@@ -118,9 +115,8 @@
 				<button class="btn btn-outline btn-primary"
 					><a href="http://hesk.rodoparana.com.br/">SUPORTE</a></button
 				>
-				<button class="btn btn-outline btn-primary"
-					><a href="/intranet">INTRANET</a></button
-				>
+				<button class="btn btn-outline btn-primary"><a href="/intranet">INTRANET</a></button>
+			</div>
 		</div>
 	</div>
 </div>

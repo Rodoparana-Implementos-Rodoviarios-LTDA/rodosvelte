@@ -1,14 +1,14 @@
-import type { IconDashboard, IconPhone } from '@tabler/icons-svelte';
-
+import type { ComponentType } from 'svelte';
 export interface MenuItem {
 	name: string;
-	icon: typeof IconDashboard | typeof IconPhone;
+	iconUrl?: string;
 	link: string;
 	external?: boolean;
 }
 
 export interface MenuSection {
 	title: string;
-	link?: string;
-	items: MenuItem[];
+	icon: ComponentType;
+	link?: string; // Alguns itens podem ter apenas um link, como "Início"
+	items?: MenuItem[]; // Deixa `items` opcional ou vazio para seções como "Início"
 }

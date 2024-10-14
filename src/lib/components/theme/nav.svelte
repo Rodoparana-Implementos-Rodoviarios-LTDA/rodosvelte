@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { IconTruckReturn, IconLogout, IconCategory } from '@tabler/icons-svelte';
+	import Logo from '$lib/Components/theme/Logo.svelte';
 	import { goto } from '$app/navigation';
 	import { menuItems } from '$lib/stores/menuItems';
-	import { clearIndexedDB } from '$lib/services/idb'; // Importar a função para limpar o IndexedDB
+	import { clearIndexedDB } from '$lib/services/idb';
 
 	let username = 'Usuário';
 	let isLoading = true;
 
+	// Carregar os dados do usuário do sessionStorage
 	async function loadUserData() {
 		if (typeof window !== 'undefined') {
 			try {
@@ -22,17 +23,12 @@
 		}
 	}
 
-	// Função de logout que limpa o IndexedDB, o sessionStorage e redireciona para a tela de login
+	// Função de logout que limpa o IndexedDB e redireciona para a tela de login
 	async function handleLogout() {
 		try {
-			// Limpar o sessionStorage
 			sessionStorage.removeItem('username');
 			sessionStorage.removeItem('token');
-
-			// Limpar o IndexedDB
 			await clearIndexedDB();
-
-			// Redirecionar para a página de login
 			goto('/');
 			console.log('Usuário deslogado e redirecionado para /');
 		} catch (error) {
@@ -49,8 +45,14 @@
 
 	<!-- Conteúdo Principal -->
 	<div class="drawer-content flex flex-col">
-		<label for="my-drawer" class="btn btn-square btn-ghost fixed top-5 left-5 z-10">
-			<IconCategory class="h-6 w-6" />
+		<label for="my-drawer" class="btn btn-square btn-outline fixed top-5 left-5 z-10">
+			<lord-icon
+				src="https://cdn.lordicon.com/hqymfzvj.json"
+				trigger="hover"
+				state="hover-file-2"
+				style="width: 24px; height: 24px; filter: brightness(0) saturate(100%) invert(57%) sepia(8%) saturate(7470%) hue-rotate(175deg) brightness(90%) contrast(87%);"
+			>
+			</lord-icon>
 		</label>
 		<slot />
 	</div>
@@ -59,71 +61,83 @@
 	<div class="drawer-side h-screen z-20">
 		<label for="my-drawer" class="drawer-overlay"></label>
 		<ul class="menu p-4 w-80 bg-base-200 text-base-content h-screen flex flex-col overflow-y-auto">
-			<div class=" flex items-center justify-center pb-10">
-				<IconTruckReturn class="w-12 h-12 text-primary" />
-				<span class="text-3xl font-bold text-primary">RodoApp</span>
+			<div class="pb-14">
+				<Logo size="w-14 h-14" textSize="text-4xl" />
 			</div>
-			<div class="bg-base-300 rounded-xl p-4 mb-2 hover:bg-base-100">
-				<span
-					class="flex items-center space-x-3  rounded-lg transition duration-200 ease-in-out text-lg font-medium"
-					>Inicio</span
-				>
-			</div>
-
 			<!-- Accordion para as seções -->
 			{#each menuItems as section, index}
-				<div class="collapse bg-base-300 mb-2 hover:bg-base-100">
-					<!-- Usamos radio buttons para garantir que apenas uma seção esteja aberta -->
-					<input type="radio" name="menu-accordion" id="section-{index}" class="peer" />
-					<label for="section-{index}" class="collapse-title text-lg font-medium"
-						>{section.title}</label
-					>
-					<div class="collapse-content">
-						{#each section.items as item}
-							<li class="mb-2">
-								<a
-									href={item.link}
-									class="flex items-center space-x-3 hover:bg-base-300 rounded-lg transition duration-200 ease-in-out text-lg"
-									target={item.external ? '_blank' : '_self'}
-									tabindex="0"
-									role="menuitem"
-									aria-label={item.name}
-								>
-									<svelte:component this={item.icon} class="h-6 w-6 text-accent" />
-									<span>{item.name}</span>
-								</a>
-							</li>
-						{/each}
+				{#if section.items && section.items.length > 0}
+					<!-- Renderiza com colapso se tiver sub-itens -->
+					<div class="collapse bg-base-300 mb-6 hover:bg-base-100">
+						<input type="radio" name="menu-accordion" id="section-{index}" class="peer" />
+						<label
+							for="section-{index}"
+							class="collapse-title text-lg font-medium flex items-center gap-3"
+						>
+							<svelte:component this={section.icon} class="h-6 w-6 text-blue-500" />
+							{section.title}
+						</label>
+						<div class="collapse-content">
+							{#each section.items as item}
+								<li class="mb-2">
+									<a
+										href={item.link}
+										class="flex items-center space-x-3 hover:bg-base-300 rounded-lg transition duration-200 ease-in-out text-lg"
+										target={item.external ? '_blank' : '_self'}
+										tabindex="0"
+										role="menuitem"
+										aria-label={item.name}
+									>
+										<lord-icon
+											src={item.iconUrl}
+											trigger="hover"
+											state="hover-pinch"
+											style="width: 35px; height: 35px; filter: brightness(0) saturate(100%) invert(57%) sepia(8%) saturate(7470%) hue-rotate(175deg) brightness(90%) contrast(87%);"
+										>
+										</lord-icon>
+
+										<span>{item.name}</span>
+									</a>
+								</li>
+							{/each}
+						</div>
 					</div>
-				</div>
+				{:else}
+					<!-- Renderiza como link direto se não houver sub-itens -->
+					<div class="bg-base-300 rounded-xl  mb-6 hover:bg-base-100">
+						<a
+							href={section.link}
+							class="collapse-title text-lg font-medium flex items-center gap-3"
+						>
+							<svelte:component this={section.icon} class="h-6 w-6 text-blue-500" />
+							{section.title}
+						</a>
+					</div>
+				{/if}
 			{/each}
 
-			<!-- ThemeChanger e Logout no fim da página -->
+			<!-- Logout no fim da página -->
 			<div class="mt-auto mb-4">
 				<button
 					class="btn btn-outline btn-error flex items-center justify-center w-full h-full relative group"
 					on:click={handleLogout}
 				>
-					<span class="username transition-opacity duration-300 ease-in-out group-hover:opacity-0">
-						{username}
-					</span>
+					<span class="username transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+						>{username}</span
+					>
 					<span
 						class="logout flex items-center justify-center gap-3 absolute opacity-0 transition-opacity duration-400 ease-in-out group-hover:opacity-100"
 					>
 						Logout
-						<IconLogout />
+						<lord-icon
+							src="https://cdn.lordicon.com/slkvcfos.json"
+							trigger="hover"
+							style="width: 24px; height: 24px"
+						>
+						</lord-icon>
 					</span>
 				</button>
 			</div>
 		</ul>
 	</div>
 </div>
-
-<style>
-	.collapse-title {
-		cursor: pointer;
-	}
-	.drawer-side {
-		overflow-y: auto;
-	}
-</style>
