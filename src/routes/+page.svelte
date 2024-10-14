@@ -118,8 +118,9 @@
 				<button class="btn btn-outline btn-primary"
 					><a href="http://hesk.rodoparana.com.br/">SUPORTE</a></button
 				>
-				<button class="btn btn-outline btn-primary"><a href="/intranet/">INTRANET</a></button>
-			</div>
+				<button class="btn btn-outline btn-primary"
+					><a href="/intranet">INTRANET</a></button
+				>
 		</div>
 	</div>
 </div>

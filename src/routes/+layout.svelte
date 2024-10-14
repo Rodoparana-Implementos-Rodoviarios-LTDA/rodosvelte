@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../globals.css';
-	import Nav from '$lib/components/theme/nav.svelte';
+	import Nav from '$lib/components/theme/navIntranet.svelte';
 	import ThemeChanger from '$lib/components/theme/changeTheme.svelte';
 	import { page } from '$app/stores'; // Para acessar a URL atual
 	import { goto } from '$app/navigation';
