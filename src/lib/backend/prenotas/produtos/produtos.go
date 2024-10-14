@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 )
 
 // ===================
@@ -14,10 +13,8 @@ import (
 // ===================
 var (
 	produtosCache    []Produto  // Cache dos dados dos produtos
-	cacheTimestamp   time.Time  // Timestamp do cache
-	mutex            sync.Mutex // Controle de concorrencia para o cache
+	mutex            sync.Mutex // Controle de concorrência para o cache
 	cacheInitialized bool       // Flag para garantir que o cache foi inicializado ao menos uma vez
-	cacheUpdating    bool       // Flag para indicar se o cache esta sendo atualizado
 )
 
 // ===================
@@ -25,104 +22,47 @@ var (
 // ===================
 
 type Produto struct {
-	Codigo      string // Código do produto
-	Descricao   string // Descrição do produto
-	CodDesc     string // Código e Descrição combinados
-	Origem      string // Origem do produto
-	UnidadeMed  string // Unidade de medida
-	Localizacao string // Localização do produto
-	Grupo       string // Grupo do produto
-	Tipo        string // Tipo do produto
-	GrupoTrib   string // Grupo de tributação
-	NCM         string // NCM (Posição IPI)
+	Codigo, Descricao, Origem, Unidade, Grupo, Tipo, NCM string
 }
 
 type RawProduto struct {
-	Codigo      string `json:"B1_COD"`    // Código
-	Descricao   string `json:"B1_DESC"`   // Descrição
-	CodDesc     string `json:"DESC"`      // Código + Descrição
-	Origem      string `json:"B1_ORIGEM"` // Origem
-	UnidadeMed  string `json:"B1_UM"`     // Unidade de medida
-	Localizacao string `json:"B1_LOCPAD"` // Localização
-	Grupo       string `json:"B1_GRUPO"`  // Grupo
-	Tipo        string `json:"B1_TIPO"`   // Tipo
-	GrupoTrib   string `json:"B1_GRTRIB"` // Grupo Tributário
-	NCM         string `json:"B1_POSIPI"` // NCM (Posição IPI)
+	Codigo    string `json:"B1_COD"`
+	Descricao string `json:"B1_DESC"`
+	Origem    string `json:"B1_ORIGEM"`
+	Unidade   string `json:"B1_UM"`
+	Grupo     string `json:"B1_GRUPO"`
+	Tipo      string `json:"B1_TIPO"`
+	NCM       string `json:"B1_POSIPI"`
 }
 
 // ===================
 // REQUISICAO E CACHE
 // ===================
 
-// InitializeCache inicializa o cache de produtos com todos os produtos do sistema
+// InitializeCache faz o carregamento inicial de todos os registros de uma vez
 func InitializeCache() {
-	log.Println("Carregando dados iniciais de produtos...")
-	fetchProdutosData()
+	log.Println("Carregando dados de todos os produtos...")
 
-	// Inicia o polling para buscar novos produtos incrementais
-	go startPolling()
-}
-
-// Funcao para buscar os produtos iniciais
-func fetchProdutosData() {
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	// Faz a requisicao para carregar todos os produtos
-	produtos, err := utils.FetchFromEndpoint[RawProduto]("http://172.16.99.174:8400/rest/reidoapsdu/consultar/likeprod", nil)
+	// Faz a requisição para buscar todos os registros de uma vez
+	produtos, err := fetchProdutosFromAPI("", "")
 	if err != nil {
 		log.Printf("Erro ao buscar produtos: %v", err)
 		return
 	}
 
-	// Processa os produtos e armazena no cache
+	// Processa os dados e atualiza o cache
 	produtosCache = processProdutos(produtos)
-	cacheTimestamp = time.Now()
 	cacheInitialized = true
-
 	log.Println("Cache de produtos carregado com sucesso!")
 }
 
-// Polling para verificar se há novos produtos a cada minuto
-func startPolling() {
-	for {
-		time.Sleep(1 * time.Minute)
-		fetchProdutosIncremental()
-	}
-}
-
-// Funcao para buscar produtos incrementais
-func fetchProdutosIncremental() {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	if !cacheInitialized {
-		log.Println("Cache nao inicializado ainda. Polling abortado.")
-		return
-	}
-
-	// Faz a requisicao para buscar produtos mais recentes
-	produtosNovos, err := utils.FetchFromEndpoint[RawProduto]("http://172.16.99.174:8400/rest/reidoapsdu/consultar/likeprod", nil)
-	if err != nil {
-		log.Printf("Erro ao buscar produtos incrementais: %v", err)
-		return
-	}
-
-	// Adiciona novos produtos ao cache
-	if len(produtosNovos) > len(produtosCache) {
-		novaQuantidade := len(produtosNovos) - len(produtosCache)
-		produtosCache = append(produtosCache, processProdutos(produtosNovos[len(produtosNovos)-novaQuantidade:]...)...)
-		log.Printf("Novos produtos adicionados ao cache: %d novos registros.", novaQuantidade)
-	} else {
-		log.Println("Nenhum novo produto encontrado.")
-	}
-}
-
 // ===================
-// HANDLER HTTP
+// HANDLER PRINCIPAL
 // ===================
 
-// GetProdutos responde com os dados filtrados dos produtos
 func GetProdutos(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -130,17 +70,39 @@ func GetProdutos(w http.ResponseWriter, r *http.Request) {
 	defer mutex.Unlock()
 
 	// Verifica se o cache foi inicializado
-	if !cacheInitialized || len(produtosCache) == 0 {
-		http.Error(w, "Nenhum produto disponivel.", http.StatusNotFound)
+	if !cacheInitialized {
+		http.Error(w, "Cache não inicializado ainda.", http.StatusInternalServerError)
 		return
 	}
 
-	// Aplica os filtros
-	filterableColumns := []string{"Codigo", "Descricao", "CodDesc", "Origem", "UnidadeMed", "Localizacao", "Grupo", "Tipo", "GrupoTrib", "NCM"}
-	filteredProdutos := applyFilters(produtosCache, r, filterableColumns)
+	// Captura o valor do header 'tipo'
+	tipo := r.Header.Get("tipo")
 
-	// Retorna os dados filtrados
-	err := json.NewEncoder(w).Encode(filteredProdutos)
+	var grupos, ngrupos string
+
+	// Define o grupo ou ngrupo com base no tipo de produto
+	switch tipo {
+	case "Despesa/Imobilizado":
+		grupos = "'0100','0500'"
+	case "Collection":
+		grupos = "'0228'"
+	case "Materia Prima":
+		grupos = " 	"
+	case "Revenda":
+		ngrupos = "'0100','0500','0276','0270','0228','0001','0003','0006','0039','0100','0105','0260','0301','0306','0311','0500','0501','0999','MAQU','VEIC'"
+	default:
+		grupos = "" // Se não for nenhum dos tipos, busca todos os produtos
+	}
+
+	// Busca os produtos diretamente da API com base no 'GRUPO' ou 'NGRUPO'
+	produtos, err := fetchProdutosFromAPI(grupos, ngrupos)
+	if err != nil {
+		http.Error(w, "Erro ao buscar produtos da API.", http.StatusInternalServerError)
+		return
+	}
+
+	// Retorna os produtos diretamente, sem cache
+	err = json.NewEncoder(w).Encode(produtos)
 	if err != nil {
 		http.Error(w, "Erro ao gerar a resposta.", http.StatusInternalServerError)
 	}
@@ -150,28 +112,44 @@ func GetProdutos(w http.ResponseWriter, r *http.Request) {
 // FUNCOES AUXILIARES
 // ===================
 
-// Funcao para processar os produtos brutos
-func processProdutos(rawProdutos ...RawProduto) []Produto {
+// Faz a requisição à API usando 'GRUPO' ou 'NGRUPO'
+func fetchProdutosFromAPI(grupos, ngrupos string) ([]RawProduto, error) {
+	url := "http://172.16.99.174:8400/rest/reidoapsdu/consultar/likeprod"
+	headers := make(map[string]string)
+
+	if grupos != "" {
+		headers["GRUPO"] = grupos
+	}
+	if ngrupos != "" {
+		headers["NGRUPO"] = ngrupos
+	}
+
+	produtos, err := utils.FetchFromEndpoint[RawProduto](url, headers)
+	if err != nil {
+		return nil, err
+	}
+
+	return produtos, nil
+}
+
+// Função que processa uma lista de produtos e converte para a estrutura final
+func processProdutos(rawProdutos []RawProduto) []Produto {
 	var processed []Produto
 	for _, raw := range rawProdutos {
-		produto := Produto{
-			Codigo:      utils.TrimString(raw.Codigo),
-			Descricao:   utils.TrimString(raw.Descricao),
-			CodDesc:     utils.TrimString(raw.CodDesc),
-			Origem:      utils.TrimString(raw.Origem),
-			UnidadeMed:  utils.TrimString(raw.UnidadeMed),
-			Localizacao: utils.TrimString(raw.Localizacao),
-			Grupo:       utils.TrimString(raw.Grupo),
-			Tipo:        utils.TrimString(raw.Tipo),
-			GrupoTrib:   utils.TrimString(raw.GrupoTrib),
-			NCM:         utils.TrimString(raw.NCM),
-		}
-		processed = append(processed, produto)
+		processed = append(processed, processProduto(raw))
 	}
 	return processed
 }
 
-// Funcao para aplicar filtros nos dados de produtos com base nos headers
-func applyFilters(produtos []Produto, r *http.Request, filterableColumns []string) []Produto {
-	return utils.FilterData(produtos, r, filterableColumns)
+// Função que processa um único produto bruto e o converte para o formato final
+func processProduto(raw RawProduto) Produto {
+	return Produto{
+		Codigo:    utils.TrimString(raw.Codigo),
+		Descricao: utils.TrimString(raw.Descricao),
+		Origem:    utils.TrimString(raw.Origem),
+		Unidade:   utils.TrimString(raw.Unidade),
+		Grupo:     utils.TrimString(raw.Grupo),
+		Tipo:      utils.TrimString(raw.Tipo),
+		NCM:       utils.TrimString(raw.NCM),
+	}
 }

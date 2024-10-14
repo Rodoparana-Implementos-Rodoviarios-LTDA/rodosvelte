@@ -1,9 +1,19 @@
 import type { Column, XML } from '$lib/types';
 import Impostos from './Impostos.svelte';
 import CurrencyFormatter from '$lib/components/ui/tabela/CurrencyFormatter.svelte'; // Importe o componente de formatação de moeda
-import Produto from './Produto.svelte'
+import Produto from './Produto.svelte'; // Importe o componente de Produto
+
 // Defina as colunas da tabela de itens da nota fiscal
 export const columns: Column<XML>[] = [
+	{
+		accessorKey: 'index', // Coluna para exibir o índice
+		header: '#',
+		class: 'text-center',
+		props: (row: any) => ({
+			index: row.index // Usando o índice atribuído ao item
+		}),
+		isFilterable: false
+	},
 	{
 		accessorKey: 'codProduto',
 		header: 'Código',
@@ -82,7 +92,7 @@ export const columns: Column<XML>[] = [
 			valorIpi: row.valorIpi,
 			aliqIpi: row.aliqIpi
 		}),
-		class: 'w-36 text-center',
+		class: 'w-36 text-center z-50',
 		isFilterable: false
 	},
 	{
@@ -90,10 +100,12 @@ export const columns: Column<XML>[] = [
 		header: 'Protheus',
 		component: Produto,
 		props: (row: any) => ({
-			ncmsh: row.ncmsh
+			index: row.index,
+			origem: row.origem,
+			ncmsh: row.ncmsh,
 		}),
 		class: 'min-w-64 text-center',
 		isFilterable: false
 	}
-
+	
 ];

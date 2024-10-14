@@ -1,45 +1,56 @@
 <script lang="ts">
-	import { xmlItemsStore } from '$lib/stores/xmlStore'; // Importa a store dos itens
+	import { xmlItemsStore, fetchState } from '$lib/stores/xmlStore'; // Importa a store dos itens da XML
 	import { columns } from './columns'; // Importa as colunas definidas
-	import { onMount } from 'svelte';
-	import { writable } from 'svelte/store';
+	import type { ConexaoNFE } from '$lib/types/ConexaoNFE'; // Tipo da XML
 
-	let loading = false; // Controla o estado de carregamento
-	let error: string | null = null; // Armazena possíveis erros
-	let items = []; // Armazena os itens da XML
+	let items: ConexaoNFE['itens'] | null = null; // Armazena os itens da XML
 
-	// Monitora a store dos itens da XML
+	// Usa o estado da store fetchState
+	$: estadoAtual = $fetchState;
+
+	// Usa o sinal $ para obter a reatividade automática da store xmlItemsStore
 	$: items = $xmlItemsStore;
 
-	// Função de inicialização, setando o estado de carregamento
-	onMount(() => {
-		loading = items.length === 0; // Se os itens estiverem vazios, exibe o estado de carregamento
-		error = items.length === 0 ? 'Nenhum item encontrado' : null;
-	});
+	// Função para parar a propagação do evento dentro dos componentes da célula
+	function handleClick(event: Event) {
+		event.stopPropagation(); // Para a propagação manualmente
+	}
 </script>
 
-<!-- Renderiza a tabela com scroll interno -->
-<div class="overflow-auto border border-primary rounded-md shadow-md w-full h-[400px]">
-	{#if loading}
-		<p>Carregando itens...</p>
-	{:else if error}
-		<p class="text-red-500">{error}</p>
-	{:else if items.length === 0}
-		<p>Nenhum item encontrado.</p>
-	{:else}
-		<table class="table table-zebra w-full">
+{#if estadoAtual === 'inicial'}
+	<div class="h-full flex items-center justify-center bg-base-300">
+		<p class="text-center text-info text-lg">
+			Por favor, insira uma chave XML para buscar os produtos.
+		</p>
+	</div>
+{:else if estadoAtual === 'carregando'}
+	<div class="flex w-full flex-col gap-4">
+		<div class="flex items-center gap-4">
+			<div class="skeleton h-16 w-16 shrink-0 rounded-full"></div>
+			<div class="flex flex-col gap-4 w-full">
+				<div class="skeleton h-4 w-full"></div>
+				<div class="skeleton h-4 w-full"></div>
+			</div>
+		</div>
+		<div class="skeleton h-32 w-full"></div>
+	</div>
+{:else if estadoAtual === 'erro'}
+	<p class="text-red-500">Erro ao buscar os produtos da XML. Tente novamente.</p>
+{:else if estadoAtual === 'sucesso' && items && items.length > 0}
+	<div class="bg-base-300 justify-end items-baseline h-full rounded-md shadow-lg w-full overflow-auto">
+		<table class="table table-zebra w-full h-full">
 			<thead>
-				<tr>
+				<tr class="h-12">
 					{#each columns as column}
 						<th class={column.class}>{column.header}</th>
 					{/each}
 				</tr>
 			</thead>
-			<tbody>
+			<tbody class="h-full">
 				{#each items as row}
-					<tr>
+					<tr class="flex-grow 2xl:text-xl">
 						{#each columns as column}
-							<td class={column.class}>
+							<td class={`h-auto ${column.class}`}>
 								{#if column.component}
 									<svelte:component
 										this={column.component}
@@ -54,5 +65,9 @@
 				{/each}
 			</tbody>
 		</table>
-	{/if}
-</div>
+	</div>
+{:else}
+	<div class="h-full flex items-center justify-center">
+		<p class="text-center text-lg">Nenhum produto encontrado para esta XML.</p>
+	</div>
+{/if}

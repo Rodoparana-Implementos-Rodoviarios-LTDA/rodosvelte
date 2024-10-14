@@ -52,10 +52,10 @@ export interface ProdutoProtheus {
 
 export interface Column<T> {
 	header: string;
-	accessorKey: keyof T;
+	accessorKey?: keyof T | 'index'; // Adicione 'index' como uma possível chave de acesso
 	cell?: (row: T) => any;
 	component?: any;
-	props?: (row: T) => Record<string, any>;
+	props?: (row: T, index?: number) => Record<string, any>; // Permitir que o índice seja passado
 	isFilterable: boolean;
 	class?: string;
 	condition?: (row: T) => boolean;
@@ -97,6 +97,7 @@ export interface PreNota {
 }
 
 export interface XML {
+	index: number;
 	codProduto: string;
 	descProduto: string;
 	ncmsh: string;

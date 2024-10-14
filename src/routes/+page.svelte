@@ -121,7 +121,6 @@
 				<button class="btn btn-outline btn-primary"
 					><a href="/intranet">INTRANET</a></button
 				>
-			</div>
 		</div>
 	</div>
 </div>

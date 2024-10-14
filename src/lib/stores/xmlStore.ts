@@ -2,6 +2,9 @@
 import { writable } from 'svelte/store';
 import type { ConexaoNFE, ConexaoNFEItem } from '$lib/types/ConexaoNFE';
 import type { Condicao, CentoCusto, UnidadeMedida } from '$lib/types/CargaInicio';
+import type { Pedido, ProdutoOption } from '$lib/types/Produtos';
+import type { PedidoProduto } from '$lib/types/Pedidos';
+import type { Filial } from '$lib/types';
 
 // Constantes de opções de prioridade
 export const prioridadeOptions = [
@@ -12,19 +15,32 @@ export const prioridadeOptions = [
 
 // Constantes de tipos de nota fiscal (NF)
 export const tiposNFOptions = [
-	{ value: 'revenda', label: 'Revenda' },
-	{ value: 'despesa_imobilizado', label: 'Despesa/Imobilizado' },
-	{ value: 'materia_prima', label: 'Matéria-Prima' },
-	{ value: 'collection', label: 'Collection' }
+	{ value: 'Revenda', label: 'Revenda' },
+	{ value: 'Despesa/Imobilizado', label: 'Despesa/Imobilizado' },
+	{ value: 'Matéria Prima', label: 'Matéria Prima' },
+	{ value: 'Collection', label: 'Collection' }
 ];
 
-// Você pode usar writable stores para gerenciar o estado, se necessário
-export const selectedPriority = writable('');
-export const selectedTipoNF = writable('');
-export const condicoesStore = writable<Condicao[]>([]);
-export const unidadeMedidaStore = writable<UnidadeMedida[]>([]);
-export const centoCustoStore = writable<CentoCusto[]>([]);
-export const filiaisStore = writable<any[]>([]);
-export const xmlItemsStore = writable<ConexaoNFEItem[]>([]);
-export const xmlDataStore = writable<ConexaoNFE | null>(null);
-export const openComboboxId = writable<string | null>(null);
+// Writable stores para gerenciar estados selecionados
+export const selectedPriority = writable<string>(''); // Prioridade selecionada
+export const selectedTipoNF = writable<string>(''); // Tipo de NF selecionado
+export const selectedCondicao = writable<string>(''); // Condição de pagamento selecionada
+export const condicoesStore = writable<Condicao[]>([]); // Condições de pagamento
+export const unidadeMedidaStore = writable<UnidadeMedida[]>([]); // Unidade de medida
+export const centoCustoStore = writable<CentoCusto[]>([]); // Centro de custo
+export const filiaisStore = writable<Filial[]>([]); // Filiais
+
+// Writable stores para os dados da XML
+export const xmlItemsStore = writable<ConexaoNFEItem[]>([]); // Itens da XML
+export const xmlDataStore = writable<ConexaoNFE | null>(null); // Dados gerais da XML
+export const xmlCnpj = writable([]);
+
+export const fetchState = writable<'inicial' | 'carregando' | 'sucesso' | 'erro'>('inicial');
+
+// Writable store para produtos
+export const produtosStore = writable<ProdutoOption[]>([]); // Armazenar os produtos após o fetch
+export const pedidosDetalhadosStore = writable<Pedido[]>([]);
+export const produtosDoPedidoStore = writable<PedidoProduto[]>([]);
+export const pedidoComboStore = writable<
+	{ label: string; value: string; produto: string; status: string }[]
+>([]);

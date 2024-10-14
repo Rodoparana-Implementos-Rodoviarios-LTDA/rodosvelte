@@ -1,23 +1,39 @@
 <script lang="ts">
-	import { xmlDataStore } from '$lib/stores/xmlStore'; // Importar a store de dados XML
-	import type { DetalhesXML } from '$lib/types';
+	// Imports de stores
+	import { xmlDataStore, fetchState } from '$lib/stores/xmlStore'; // Importando stores necessárias
+	import { fetchPedidos } from '$lib/services/fetchPedidos'; // Importando serviço de pedidos
 
-	export let loadingDetalhes: boolean = false; // Prop para controle de loading
-	let detalhesXML: DetalhesXML | null = null; // Dados da store de XML
-	let errorDetalhes: string | null = null;
+	let detalhesXML = null;
+	let cnpjEmitente = null;
 
-	// Usando o sinal `$` para reatividade automática da store
-	$: {
-		if ($xmlDataStore) {
-			detalhesXML = $xmlDataStore;
-			errorDetalhes = null;
-		} else if (!loadingDetalhes && !detalhesXML) {
-			errorDetalhes = 'Nenhum dado encontrado.';
-		}
+	// Usa o estado da store fetchState
+	$: estadoAtual = $fetchState;
+
+	// Usa o sinal $ para obter a reatividade automática da store xmlDataStore
+	$: detalhesXML = $xmlDataStore;
+
+	// Função para buscar os pedidos com base no CNPJ emitente
+	async function buscarPedidos(cnpj) {
+		await fetchPedidos(cnpj); // Chama o fetch para salvar os pedidos na pedidosStore
+	}
+
+	// Atualiza o CNPJ emitente quando os dados XML forem obtidos
+	$: if (detalhesXML) {
+		cnpjEmitente = detalhesXML.cnpjEmitente;
+
+		// Faz a busca pelos pedidos relacionados ao fornecedor
+		buscarPedidos(cnpjEmitente);
 	}
 </script>
 
-{#if loadingDetalhes}
+<!-- Renderização condicional baseada no estado -->
+{#if estadoAtual === 'inicial'}
+	<div class="h-full flex items-center justify-center">
+		<p class="text-center text-info text-lg">
+			Por favor, insira uma chave XML para buscar os detalhes.
+		</p>
+	</div>
+{:else if estadoAtual === 'carregando'}
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex items-center gap-4">
 			<div class="skeleton h-16 w-16 shrink-0 rounded-full"></div>
@@ -28,16 +44,16 @@
 		</div>
 		<div class="skeleton h-32 w-full"></div>
 	</div>
-{:else if errorDetalhes}
-	<p class="text-red-500">Erro: {errorDetalhes}</p>
-{:else if detalhesXML}
+{:else if estadoAtual === 'erro'}
+	<p class="text-red-500">Erro ao buscar os dados da XML. Tente novamente.</p>
+{:else if estadoAtual === 'sucesso' && detalhesXML}
 	<!-- Renderiza os detalhes da XML -->
 	<div class="flex justify-between">
 		<div class="flex gap-2 items-center justify-start">
 			<span class="text-lg font-medium">FORNECEDOR:</span>
 			<div class="flex flex-col">
 				<span class="text-sm opacity-70">{detalhesXML.nomeEmitente}</span>
-				<span class="text-xs opacity-70"> {detalhesXML.cnpjEmitente}</span>
+				<span class="text-xs opacity-70">{detalhesXML.cnpjEmitente}</span>
 			</div>
 		</div>
 		<div class="flex gap-2 items-center justify-start">
@@ -49,9 +65,7 @@
 		<div class="flex gap-2 items-center justify-start">
 			<span class="text-lg font-medium">FILIAL:</span>
 			<div class="flex flex-col">
-				<span class="text-sm opacity-70"
-					>{detalhesXML.filialName || detalhesXML.nomeDestinatario}</span
-				>
+				<span class="text-sm opacity-70">{detalhesXML.nomeDestinatario}</span>
 				<span class="text-xs opacity-70"> {detalhesXML.cnpjDestinatario}</span>
 			</div>
 		</div>
@@ -60,13 +74,11 @@
 			<span class="opacity-70">{detalhesXML.dataEmissao}</span>
 		</div>
 	</div>
-	<div class="collapse collapse-arrow bg-base-300">
+	<div class="collapse collapse-arrow bg-base-300 mt-4">
 		<input type="checkbox" />
 		<div class="collapse-title text-lg font-medium w-full flex justify-center">Detalhes da XML</div>
 		<div class="collapse-content">
 			<p>{detalhesXML.informacoesAdicionais}</p>
 		</div>
 	</div>
-{:else}
-	<p>Insira uma chave XML para buscar os detalhes.</p>
 {/if}
