@@ -1,58 +1,35 @@
 <script lang="ts">
-	import { IconFilter } from '@tabler/icons-svelte';
-	import { createEventDispatcher } from 'svelte';
-	import { onMount, onDestroy } from 'svelte';
-
+	import { filterStore, setFilter, resetFilters } from '$lib/stores/filterStore';
+	import { IconFilterFilled } from '@tabler/icons-svelte';
 	export let columns: { header: string; accessorKey: string; isFilterable: boolean }[] = [];
 
-	const dispatch = createEventDispatcher();
-	let filters: Record<string, string> = {};
+	// Reatividade automática à store de filtros
+	$: $filterStore;
 
-	// Função chamada quando o valor de um input de filtro muda
 	function handleInputChange(columnKey: string, event: Event) {
 		const target = event.target as HTMLInputElement;
-		filters[columnKey] = target.value;
+		setFilter(columnKey, target.value); // Atualiza diretamente a store de filtros
 	}
 
-	// Função que aplica os filtros e envia os dados para o componente pai
 	function applyFilters() {
-		dispatch('applyFilters', filters);
 		closeDrawer();
 	}
 
-	// Função para resetar os filtros e enviar o evento para o componente pai
-	function resetFilters() {
-		filters = {}; // Limpa os filtros
-		dispatch('resetFilters'); // Emite o evento para o componente pai
+	function resetAllFilters() {
+		resetFilters(); // Reseta a store de filtros
 		closeDrawer();
 	}
 
-	// Função para fechar o drawer
 	function closeDrawer() {
 		const drawerInput = document.getElementById('filter-drawer') as HTMLInputElement;
 		if (drawerInput) {
 			drawerInput.checked = false;
 		}
 	}
-
-	// Fechar com "ESC" usando a API do DaisyUI
-	function handleEscKey(event: KeyboardEvent) {
-		if (event.key === 'Escape') {
-			closeDrawer();
-		}
-	}
-
-	onMount(() => {
-		document.addEventListener('keydown', handleEscKey);
-	});
-
-	onDestroy(() => {
-		document.removeEventListener('keydown', handleEscKey);
-	});
 </script>
 
-<!-- DaisyUI Drawer -->
-<div class="drawer drawer-end">
+<!-- Drawer do DaisyUI -->
+<div class="drawer drawer-end ">
 	<input id="filter-drawer" type="checkbox" class="drawer-toggle" />
 	<div class="drawer-content">
 		<!-- Botão que abre o drawer -->
@@ -61,14 +38,14 @@
 			class="tooltip tooltip-info tooltip-bottom btn drawer-button hover:text-primary flex justify-center items-center"
 			data-tip="Filtrar dados"
 		>
-			<IconFilter class="h-6 w-6" />
+			<IconFilterFilled />
 		</label>
 	</div>
 
-	<div class="drawer-side">
+	<div class="drawer-side z-[9999]">
 		<label for="filter-drawer" class="drawer-overlay"></label>
 		<ul class="menu bg-base-200 text-base-content min-h-full w-96 p-4">
-			<!-- Exibe apenas as colunas que são filtráveis -->
+			<!-- Inputs de Filtro para cada coluna filtrável -->
 			{#each columns as column}
 				{#if column.isFilterable}
 					<li class="px-5">
@@ -83,19 +60,9 @@
 			{/each}
 
 			<div class="flex gap-2">
-				<button class="btn btn-outline w-fit m-5" on:click={resetFilters}>
-					Reiniciar Filtros
-				</button>
-				<button class="btn btn-primary w-fit m-5" on:click={applyFilters}>
-					Aplicar Filtros
-				</button>
+				<button class="btn btn-outline w-fit m-5" on:click={resetFilters}>Reiniciar Filtros</button>
+				<button class="btn btn-primary w-fit m-5" on:click={applyFilters}>Aplicar Filtros</button>
 			</div>
 		</ul>
 	</div>
 </div>
-
-<style>
-	.drawer-side {
-		z-index: 9999;
-	}
-</style>

@@ -1,28 +1,44 @@
-<!-- src/routes/+page.svelte -->
 <script lang="ts">
-	import { columns } from '../../lib/components/portaria/borracharia/columns'; // Importa as colunas
+	import { onMount } from 'svelte';
+	import { columns } from '$lib/components/portaria/borracharia/columns'; // Importa as colunas
 	import Table from '$lib/components/ui/tabela/Table.svelte'; // Componente da Tabela
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
-	
-
 
 	// Defina o endpoint no nível da página
 	export let endpoint: string = 'api/borracharia';
-	let filters = {}; // Inicialmente, nenhum filtro aplicado
-	let sortBy = 'emissao'; // Coluna padrão para ordenação
+	let filters: Record<string, string> = {}; // Inicialmente, nenhum filtro aplicado
+	let sortBy = 'DataHora'; // Coluna padrão para ordenação
 	let sortOrder: 'asc' | 'desc' = 'desc'; // Ordem padrão
+	let isTableReady = false; // Estado para garantir que a tabela seja recarregada corretamente
 
 	// Função para aplicar filtros
 	function applyFilters(event: CustomEvent<Record<string, string>>) {
-		filters = event.detail; // Captura os filtros do evento
-		console.log('Filtros aplicados:', filters); // Verifica os filtros aplicados
+		filters = event.detail;
+		console.log('Filtros aplicados:', filters);
+		isTableReady = false; // Sinaliza que a tabela deve ser recarregada
 	}
 
-	// Função para resetar filtros e recarregar a tabela
+	// Função para resetar filtros
 	function resetFilters() {
-		filters = {}; // Reseta os filtros
+		filters = {};
 		console.log('Filtros resetados');
+		isTableReady = false; // Sinaliza que a tabela deve ser recarregada
 	}
+
+	// Garante que os filtros são aplicados após a página carregar
+	onMount(() => {
+		try {
+			console.log('Página montada, aplicando filtros:', filters);
+
+			// Se existir filtros salvos, aplica-os na inicialização
+			if (Object.keys(filters).length > 0) {
+				applyFilters(new CustomEvent('applyFilters', { detail: filters }));
+			}
+			isTableReady = true; // Permite que a tabela seja renderizada
+		} catch (error) {
+			console.error('Erro ao carregar a página ou aplicar filtros:', error);
+		}
+	});
 </script>
 
 <!-- Interface da Tabela -->
@@ -43,7 +59,11 @@
 			</div>
 
 			<!-- Componente da Tabela -->
-			<Table {columns} {endpoint} {filters} {sortBy} {sortOrder} />
+			{#if isTableReady}
+				<Table {columns} {endpoint} {sortBy} {sortOrder} />
+			{:else}
+				<p>Carregando tabela...</p>
+			{/if}
 		</div>
 	</div>
 </div>
