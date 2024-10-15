@@ -122,17 +122,18 @@
 					class="btn btn-outline btn-error flex items-center justify-center w-full h-full relative group"
 					on:click={handleLogout}
 				>
-					<span class="username transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+					<span class="text-xl transition-opacity duration-300 ease-in-out group-hover:opacity-0"
 						>{username}</span
 					>
 					<span
-						class="logout flex items-center justify-center gap-3 absolute opacity-0 transition-opacity duration-400 ease-in-out group-hover:opacity-100"
+						class="w-full  text-xl flex items-center justify-evenly gap-3 absolute opacity-0 transition-opacity duration-400 ease-in-out group-hover:opacity-100"
 					>
-						Logout
+						Sair do RodoApp
 						<lord-icon
-							src="https://cdn.lordicon.com/slkvcfos.json"
+							src="https://cdn.lordicon.com/nqtddedc.json"
 							trigger="hover"
-							style="width: 24px; height: 24px"
+							colors="primary:#ffffff"
+							style="width: 35px; height: 35px"
 						>
 						</lord-icon>
 					</span>

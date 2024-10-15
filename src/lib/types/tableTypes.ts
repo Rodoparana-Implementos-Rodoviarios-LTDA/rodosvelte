@@ -18,20 +18,20 @@ export interface Column<T> {
 }
 
 export interface HistoricoConferido {
-    Filial: string;
-    NF: string;           // Número da Nota Fiscal e série
-    Vendedor: string;     // Vendedor (inclui nome e status)
-    Cliente: string;      // Código, loja e nome do cliente
-    Produto: string;      // Código do produto e descrição
-    DataHora: string;     // Data e hora da movimentação
-    Responsavel: string;  // Responsável pela conferência
-    Placa: string;        // Placa do veículo
-    Observacao: string;   // Observações
-    DataConf: string;     // Data de confirmação
-    Seq: string;          // Sequência
-    Saldo: number;        // Quantidade/Saldo
+	Filial: string;
+	NF: string; // Número da Nota Fiscal e série
+	Vendedor: string; // Vendedor (inclui nome e status)
+	Cliente: string; // Código, loja e nome do cliente
+	Produto: string; // Código do produto e descrição
+	DataHora: string; // Data e hora da movimentação
+	Responsavel: string; // Responsável pela conferência
+	Placa: string; // Placa do veículo
+	Observacao: string; // Observações
+	DataConf: string; // Data de confirmação
+	Seq: string; // Sequência
+	Saldo: number; // Quantidade/Saldo
 }
-  
+
 // Interface original de borracharia
 export interface borracharia {
 	Filial: string;
@@ -91,8 +91,9 @@ export interface HistoricoData {
 	Placa: string;
 	Observacao?: string;
 	Saldo: number;
-	Z08_CONFER: string; 
-  }
+	Z08_CONFER: string;
+	actions?: () => void;
+}
 
 // Interface para PreNotaTabela
 export interface PreNotaTabela {

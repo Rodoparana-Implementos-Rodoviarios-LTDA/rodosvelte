@@ -1,96 +1,61 @@
 <script lang="ts">
-	import { produtosDoPedidoStore, produtosStore, selectedTipoNF } from '$lib/stores/xmlStore';
 	import Combobox from '$lib/components/ui/Combobox/Combobox.svelte';
-	import { get } from 'svelte/store';
-
+	import { produtosDoPedidoStore, produtosStore, selectedTipoNF } from '$lib/stores/xmlStore';
+	import { formatarProdutosDoPedidoFiltrados } from './produtosDoPedidoStore'; // Função de filtro para pedidos
+	import { obterProdutosProtheusFiltrados } from './produtosStore'; // Função de filtro para produtos do Protheus
+	import type { ComboboxOption } from '$lib/types/Produtos';
+  
 	// Props recebidas da coluna (para NCM e origem)
 	export let origem: string;
 	export let ncmsh: string;
-
-	// Armazenar os produtos disponíveis no pedido e no Protheus
+	export let quantidade: number;
+	export let valorUnitario: number;
+	export let valorTotal: number;
+  
+	// Variável para armazenar as opções de produtos
 	let produtosOptions: ComboboxOption[] = [];
-	let produtosProtheus = get(produtosStore); // Produtos disponíveis do Protheus
-
-	// Obtenha o tipo de NF (Matéria Prima, Revenda, etc.)
-	const tipoNF = get(selectedTipoNF);
-
-	// Função para formatar os produtos
-	function FormataProdutos(produtos: Produto[]): ComboboxOption[] {
-		return produtos.map((produto) => ({
-			label: `${produto.codigo} - ${produto.nomeProduto}`,
-			value: produto.codigo,
-			campo1: produto.quantidade.toString(),
-			campo2: produto.total.toFixed(2)
-		}));
-	}
-
-	// Função para aplicar o filtro baseado em NCM e origem
-	function aplicarFiltro(produtos: ComboboxOption[]): ComboboxOption[] {
-		return produtos.filter((produto) => {
-			const ncmshValue = String(ncmsh || '').trim();
-			const origemValue = String(origem || '').trim();
-			const produtoNcm = String(produto.campo1 || '').trim(); // NCM do produto
-			const produtoOrigem = String(produto.campo2 || '').trim(); // Origem do produto
-
-			// Aplicar o filtro baseado no NCM e origem
-			const ncmMatches = produtoNcm === ncmshValue;
-			const origemMatches = produtoOrigem === origemValue;
-
-			return ncmMatches && origemMatches;
-		});
-	}
-
-	// Lógica para formatar e filtrar os produtos
+  
+	// Obtenção reativa das stores
+	$: tipoNF = $selectedTipoNF;
+	$: produtosProtheus = $produtosStore;
+	$: produtosDoPedido = $produtosDoPedidoStore;
+  
+	// Lógica para decidir os produtos a serem mostrados, reativamente
 	$: {
-		if ($produtosDoPedidoStore.length > 0) {
-			// Formatar os produtos dos pedidos selecionados
-			produtosOptions = FormataProdutos($produtosDoPedidoStore);
-
-			// Aplicar o filtro de NCM e origem se for "Revenda" ou "Matéria Prima"
-			if (tipoNF === 'Matéria Prima' || tipoNF === 'Revenda') {
-				produtosOptions = aplicarFiltro(produtosOptions);
-			}
+	  if (produtosDoPedido && produtosDoPedido.length > 0) {
+		// Caso tenha produtos do pedido, mostrar produtos do pedido
+		if (tipoNF) {
+		  // Se houver pedido e tipo de NF, aplicar os filtros
+		  produtosOptions = formatarProdutosDoPedidoFiltrados(ncmsh, origem, quantidade, valorUnitario, valorTotal);
 		} else {
-			// Caso não haja produtos dos pedidos selecionados, aplicar a lógica do Protheus
-			if (tipoNF === 'Matéria Prima' || tipoNF === 'Revenda') {
-				produtosProtheus = produtosProtheus.filter((option) => {
-					const ncmshValue = String(ncmsh || '').trim();
-					const origemValue = String(origem || '').trim();
-					const optionNcm = String(option.campo1 || '').trim();
-					const optionOrigem = String(option.campo2 || '').trim();
-
-					// Filtro baseado no NCM e origem
-					const ncmMatches = optionNcm === ncmshValue;
-					const origemMatches = optionOrigem === origemValue;
-
-					return ncmMatches && origemMatches;
-				});
-			}
-
-			// Formatar os produtos do Protheus para o Combobox
-			produtosOptions = produtosProtheus.map((option) => ({
-				label: `${option.label}`,
-				value: option.value,
-				campo1: option.campo1, // NCM
-				campo2: option.campo2 // Origem
-			}));
+		  // Caso tenha só produtos do pedido, sem tipo de NF, mostrar todos
+		  produtosOptions = formatarProdutosDoPedidoFiltrados('', '', 0, 0, 0);
 		}
+	  } else if (!produtosDoPedido || produtosDoPedido.length === 0) {
+		// Caso não tenha produtos do pedido, mas tenha tipo de NF, usar produtos do Protheus
+		if (tipoNF) {
+		  produtosOptions = obterProdutosProtheusFiltrados(ncmsh, origem);
+		} else {
+		  // Caso nenhum pedido e nenhum tipo de NF, sem filtro
+		  produtosOptions = [];
+		}
+	  }
 	}
-
-	// Função para lidar com a seleção de produto
+  
+	// Função para lidar com a seleção de produto no Combobox
 	function handleProductSelect(event: CustomEvent) {
-		const produtoSelecionado = event.detail.selected;
-		console.log('Produto selecionado:', produtoSelecionado);
-		// Lógica para salvar o produto selecionado ou realizar alguma ação
+	  const produtoSelecionado = event.detail.selected;
+	  console.log('Produto selecionado:', produtoSelecionado);
 	}
-</script>
-
-<!-- Renderização do Combobox -->
-<Combobox
+  </script>
+  
+  <!-- Renderização do Combobox -->
+  <Combobox
 	placeholder="Selecione um produto"
 	options={produtosOptions}
 	on:select={handleProductSelect}
 	tit1="Saldo:"
 	tit2="Valor total:"
 	buttonClass="bg-base-300 w-full"
-/>
+  />
+  

@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import { selectedTipoNF, produtosStore, fetchState } from '$lib/stores/xmlStore';
-import type { ProdutoOption } from '$lib/types/Produtos';
+import type { ComboboxOption } from '$lib/types/Produtos';
 
 export async function fetchProdutos(): Promise<void> {
 	// Get the token from sessionStorage
@@ -45,7 +45,7 @@ export async function fetchProdutos(): Promise<void> {
 		console.log('Produtos recebidos da API:', result);
 
 		// Map the products
-		const mappedProdutos: ProdutoOption[] = result.map((produto: any) => ({
+		const mappedProdutos: ComboboxOption[] = result.map((produto: any) => ({
 			label: produto.B1_DESC,
 			value: produto.B1_COD,
 			campo1: produto.B1_POSIPI,
