@@ -116,7 +116,8 @@
         <hr class="my-2" />
         <div class="flex justify-between items-center">
             <div>
-                <span class="text-lg font-semibold text-primary">Quantidade Apanhada</span>
+                <span class="text-lg font-semibold text-primary">Quantidade Apanhada </span>
+                
                 <p class="text-sm text-warning">Quantidade real</p>
             </div>
             <span class="text-2xl font-bold text-base-content">{saldoConferencia}</span>
