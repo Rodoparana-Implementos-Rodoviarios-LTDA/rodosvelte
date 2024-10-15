@@ -5,9 +5,9 @@
 	import Filtrar from '$lib/components/ui/tabela/Filtrar.svelte';
 
 	// Defina o endpoint no nível da página
-	export let endpoint: string = 'api/pneus/portaria';
+	export let endpoint: string = 'api/portaria';
 	let filters: Record<string, string> = {}; // Inicialmente, nenhum filtro aplicado
-	let sortBy = 'emissao'; // Coluna padrão para ordenação
+	let sortBy = 'DataHora'; // Coluna padrão para ordenação
 	let sortOrder: 'asc' | 'desc' = 'desc'; // Ordem padrão
 	let isTableReady = false; // Estado para garantir que a tabela seja recarregada corretamente
 

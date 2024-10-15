@@ -51,11 +51,7 @@ export const columns: Column<HistoricoData>[] = [
       filial: row.Filial,           // Adicionado para uso no componente ActionButton
       cliente: row.Cliente          // Adicionado para uso no componente ActionButton
     }),
-<<<<<<< Updated upstream
     isFilterable: false,  // Ações não são filtráveis
   },
-=======
-    isFilterable: false  // Ações não são filtráveis
-  }
 ];
->>>>>>> Stashed changes
+
